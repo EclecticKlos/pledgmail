@@ -15,4 +15,4 @@ As a user I want my gmail to auto-reply to someone who sends me a message that i
 
 
 Note:
-$(".Ap div:nth-child(2) div:nth-child(1) div:nth-child(1)").innerHTML
+
