@@ -1,5 +1,22 @@
-if ($(".aoI")) {
-  console.log($(".Ap div:nth-child(2) div:nth-child(1)").innerText.length);
-}
+var insertListener = function(event){
 
-// Need to require JQuery
+  if (event.animationName == "nodeInserted") {
+    // Thanks to David Walsh (http://davidwalsh.name/detect-node-insertion) for this animation trick
+
+    var checkForCharactersInCompose = window.setInterval(function() {
+      charactersInCompose = $(".Am").text();
+      if (charactersInCompose != undefined || charactersInCompose != "") {
+        console.log(charactersInCompose.length);
+        window.clearInterval(checkForCharactersInCompose);
+        return charactersInCompose;
+      }
+    }, 1000);
+
+    $('.Am').keyup(function(event) {
+      console.log("Keyup detected")
+    })
+
+  }
+};
+
+document.addEventListener("webkitAnimationStart", insertListener, false);

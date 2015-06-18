@@ -6,7 +6,8 @@
   "content_scripts" : [
     {
       "matches": ["*://mail.google.com/mail/*"],
-      "js": ["js/compose.js"]
+      "js": ["js/jquery.js", "js/compose.js"],
+      "css": ["css/stylesheet.css"]
     }
   ]
 }

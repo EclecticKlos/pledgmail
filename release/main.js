@@ -5,8 +5,9 @@
   "version": "0.0.1",
   "content_scripts" : [
     {
-      "matches": ["*https://mail.google.com/mail/u/0/#inbox?compose="],
-      "js": ["js/compose.js,"]
-    },
+      "matches": ["*://mail.google.com/mail/*"],
+      "js": ["js/jquery.js", "js/compose.js"],
+      "css": ["css/stylesheet.css"]
+    }
   ]
 }
