@@ -3,7 +3,16 @@
   to { opacity: 1; }
 }
 
-.z0 > div {
+@-webkit-keyframes nodeInserted {
+  from { opacity: 0.99; }
+  to { opacity: 1; }
+}
+
+.Ap div:nth-child(2) div:nth-child(1) {
     animation-duration: 0.001s;
     animation-name: nodeInserted;
+}
+
+.Ap div:nth-child(2) div:nth-child(1) {
+    background: green;
 }
