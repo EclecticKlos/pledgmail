@@ -11,19 +11,28 @@ var insertListener = function(event){
     }
 
     var updateCharCounter = function(charCount) {
-      $("tr.n1tfz td:nth-child(5) div span:nth-child(3)")[0].innerText = charCount;
+      $("tr.n1tfz td:nth-child(5) div span:nth-child(3)")[0].innerText = (charCount + "" + charLimit);
     }
 
     var keyupListener = function() {
       $('.Am').keyup(function(event) {
         console.log("Keyup detected")
         charactersInCompose = $(".Am").text();
-        charCount = charactersInCompose.length;
+        console.log($(".gmail_signature") + " << sig")
+        if ($(".gmail_signature").text().length !== 0) {
+          signature = ($(".gmail_signature").text().length + signatureExtraChars)
+        } else {
+          signature = ($(".Ap div:nth-child(2) div div:nth-child(4)").text().length + signatureExtraChars)
+        }
+        charCount = (charactersInCompose.length - signature);
         console.log(charCount);
         updateCharCounter(charCount);
       })
     }
 
+    var charLimit = "/640"
+    var signature = 0;
+    var signatureExtraChars = 4;
     var span = document.createElement('span');
     var charactersInCompose = $(".Am").text();
     var charCount = undefined;
