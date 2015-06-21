@@ -7,6 +7,7 @@ var insertListener = function(event){
       // span.textContent = charCount;
       span.setAttribute('class', 'count');
       span.setAttribute('style', 'color: red');
+      span.style.fontSize = "77%";
       $("tr.n1tfz td:nth-child(5) div")[0].appendChild(span)
     }
 
@@ -20,10 +21,13 @@ var insertListener = function(event){
         charactersInCompose = $(".Am").text();
         console.log($(".gmail_signature") + " << sig")
         if ($(".gmail_signature").text().length !== 0) {
-          signature = ($(".gmail_signature").text().length + signatureExtraChars)
+          signature = ($(".gmail_signature").text().length + signatureExtraChars);
+        } else if ($(".Ap div:nth-child(2) div div:nth-child(4)").text().length !== 0) {
+          signature = ($(".Ap div:nth-child(2) div div:nth-child(4)").text().length + signatureExtraChars);
         } else {
-          signature = ($(".Ap div:nth-child(2) div div:nth-child(4)").text().length + signatureExtraChars)
+          signature = 0;
         }
+
         charCount = (charactersInCompose.length - signature);
         console.log(charCount);
         updateCharCounter(charCount);
