@@ -7,6 +7,7 @@ var insertListener = function(event){
       // span.textContent = charCount;
       span.setAttribute('class', 'count');
       span.setAttribute('style', 'color: red');
+      span.style.fontSize = "77%";
       $("tr.n1tfz td:nth-child(5) div")[0].appendChild(span)
     }
 
