@@ -1,6 +1,6 @@
 var insertListener = function(event){
 
-  if (event.animationName == "nodeInserted") {
+  if (event.animationName === "nodeInserted") {
     // Thanks to David Walsh (http://davidwalsh.name/detect-node-insertion) for this animation listener trick
 
     var makeCharCounterSpan = function() {
@@ -21,11 +21,14 @@ var insertListener = function(event){
         gmailSignatureExtraChars = 1;
         return signature = ($(".gmail_signature").text().length);
       }
-      else if ($(".Ap div:nth-child(2) div:nth-child(1)")[0].hasChildNodes()) {
+      else if ($(".Ap div:nth-child(2) div:nth-child(1)")[0].children.length === 0) {
+        return signature = 0;
+      }
+      else if ($(".Ap div:nth-child(2) div:nth-child(1)")[0].children.length > 0) {
         firstNodeTier = $(".Ap div:nth-child(2) div:nth-child(1)")[0];
         for (i = 0; i < firstNodeTier.children.length; i++) {
           if ($(".Ap div:nth-child(2) div:nth-child(1)")[0].innerText.includes("-- ")) {
-            signatureHyphenLength = 3;
+            return signatureHyphenLength = 3;
           };
           if ($(".Ap div:nth-child(2) div:nth-child(1)")[0].children[i].children.length > 0) {
             secondNodeTier = $(".Ap div:nth-child(2) div:nth-child(1)")[0].children[i];
@@ -37,16 +40,16 @@ var insertListener = function(event){
                   return signature = $(".Ap div:nth-child(2) div:nth-child(1)")[0].children[i].children[j].innerText.length;
                 }
                 else {
-                  signature = 0;
+                  return signature = 0;
                 }
               }
               else {
-                signature = 0;
+                return signature = 0;
               }
             }
           }
           else {
-                signature = 0;
+                return signature = 0;
           }
         }
       }
