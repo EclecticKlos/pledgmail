@@ -17,17 +17,23 @@ var insertListener = function(event){
 
     var findSignatureLength = function(){
       if ($(".gmail_signature").text().length !== 0) {
-          return signature = ($(".gmail_signature").text().length + signatureExtraChars);
+        if ($(".Ap div:nth-child(2) div:nth-child(1)")[0].innerText.includes("-- ")) { signatureHyphenLength = 3};
+        gmailSignatureExtraChars = 1;
+        return signature = ($(".gmail_signature").text().length);
       }
       else if ($(".Ap div:nth-child(2) div:nth-child(1)")[0].hasChildNodes()) {
         firstNodeTier = $(".Ap div:nth-child(2) div:nth-child(1)")[0];
         for (i = 0; i < firstNodeTier.children.length; i++) {
+          if ($(".Ap div:nth-child(2) div:nth-child(1)")[0].innerText.includes("-- ")) {
+            signatureHyphenLength = 3;
+          };
           if ($(".Ap div:nth-child(2) div:nth-child(1)")[0].children[i].children.length > 0) {
             secondNodeTier = $(".Ap div:nth-child(2) div:nth-child(1)")[0].children[i];
             for (j = 0; j < secondNodeTier.children.length; j++) {
               if ($(".Ap div:nth-child(2) div:nth-child(1)")[0].children[i].children[j].children.length > 0) {
                 if ($(".Ap div:nth-child(2) div:nth-child(1)")[0].children[i].children[j].children[0].children.length > 0) {
                   console.log($(".Ap div:nth-child(2) div:nth-child(1)")[0].children[i].children[j].innerText)
+                  gmailSignatureExtraChars = 0;
                   return signature = $(".Ap div:nth-child(2) div:nth-child(1)")[0].children[i].children[j].innerText.length;
                 }
                 else {
@@ -59,16 +65,17 @@ var insertListener = function(event){
         // } else {
         //   signature = 0;
         // }
-        debugger;
-        charCount = (charactersInCompose.length - findSignatureLength() - signatureExtraChars);
+        charCount = (charactersInCompose.length - findSignatureLength() - signatureHyphenLength - gmailSignatureExtraChars);
         console.log(charactersInCompose);
         updateCharCounter(charCount);
       })
     }
 
+    var signatureHyphenLength = 0;
+    var signatureHyphens = false;
     var charLimit = "/640"
     var signature = 0;
-    var signatureExtraChars = 1;
+    var gmailSignatureExtraChars = 0;
     var span = document.createElement('span');
     var charactersInCompose = $(".Am").text();
     var charCount = undefined;
