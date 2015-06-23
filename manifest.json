@@ -2,14 +2,14 @@
   "manifest_version": 2,
   "name": "pledgmail",
   "description": "Helps you write and receive shorter emails",
-  "version": "0.0.1.2",
+  "version": "0.0.1.5",
   "default locale": "en",
   "icons": { "128": "imgs/pledge_pin.png"},
   "content_scripts" : [
     {
       "matches": ["*://mail.google.com/mail/*"],
-      "js": ["js/jquery.js", "js/compose.js"],
-      "css": ["css/stylesheet.css"]
+      "js": ["js/jquery.js", "js/compose.js", "bower_components/jqnotifybar/jquery.notifyBar.js"],
+      "css": ["css/stylesheet.css", "bower_components/jqnotifybar/css/jquery.notifyBar.css"]
     }
   ]
 }

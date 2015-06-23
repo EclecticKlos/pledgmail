@@ -1,0 +1,40 @@
+{
+  "name": "jqnotifybar",
+  "version": "1.5.2",
+  "homepage": "http://www.whoop.ee/posts/2013/04/05/the-resurrection-of-jquery-notify-bar.html",
+  "authors": [
+    "dknight <smirnov.dmitri@gmail.com>"
+  ],
+  "description": "Small widget, which notifies user about event from top or bottom of the page.",
+  "main": "jquery.notifyBar.js",
+  "moduleType": [
+    "es6"
+  ],
+  "keywords": [
+    "ui",
+    "notity",
+    "bar",
+    "jquery"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": ">=1.7.1"
+  },
+  "_release": "1.5.2",
+  "_resolution": {
+    "type": "version",
+    "tag": "1.5.2",
+    "commit": "0cbad67b80c824ae4c37ffbad975582c94ae53bd"
+  },
+  "_source": "git://github.com/dknight/jQuery-Notify-bar.git",
+  "_target": "~1.5.2",
+  "_originalSource": "jqnotifybar",
+  "_direct": true
+}
