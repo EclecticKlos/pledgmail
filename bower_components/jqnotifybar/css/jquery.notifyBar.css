@@ -52,8 +52,8 @@
 
 /* Style for errors */
 .jquery-notify-bar.error {
-  color:#d00;
-  background-color:#fdd;
+  color:#FFFFFF;
+  background-color:#FF0000;
 }
 .jquery-notify-bar.error .notify-bar-text-wrapper {
   background: transparent url("../img/jq-notify-bar-icons.svg") no-repeat 0 -62px;

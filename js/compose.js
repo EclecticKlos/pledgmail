@@ -15,8 +15,8 @@ var insertListener = function(event){
       $(function () {
         $.notifyBar({
           cssClass: "error",
-          html: "Too many characters!",
-          delay: 2000,
+          html: "Can you pare this down, or perhaps a phone call is better?",
+          delay: 4000,
           animationSpeed: "normal"
         });
       });
