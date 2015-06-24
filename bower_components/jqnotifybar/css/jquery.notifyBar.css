@@ -52,9 +52,27 @@
 
 /* Style for errors */
 .jquery-notify-bar.error {
+  color:#d00;
+  background-color:#fdd;
+}
+.jquery-notify-bar.error .notify-bar-text-wrapper {
+  background: transparent url("../img/jq-notify-bar-icons.svg") no-repeat 0 -62px;
+}
+
+/* Pledgmail style for errors */
+.jquery-notify-bar.too-long {
   color:#FFFFFF;
   background-color:#FF0000;
+
+  bottom:0;
+  top:auto;
+  border-top:1px solid #ddd;
+  border-bottom:0;
+  -webkit-box-shadow: inset 0 1px 0 0 #fff;
+     -moz-box-shadow: inset 0 1px 0 0 #fff;
+          box-shadow: inset 0 1px 0 0 #fff;
 }
+
 .jquery-notify-bar.error .notify-bar-text-wrapper {
   background: transparent url("../img/jq-notify-bar-icons.svg") no-repeat 0 -62px;
 }

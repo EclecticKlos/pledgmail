@@ -14,9 +14,10 @@ var insertListener = function(event){
     var charLimitExceededNotification = function() {
       $(function () {
         $.notifyBar({
-          cssClass: "error",
+          cssClass: "too-long",
           html: "Can you pare this down, or perhaps a phone call is better?",
           delay: 4000,
+          position: "bottom",
           animationSpeed: "normal"
         });
       });
@@ -25,7 +26,6 @@ var insertListener = function(event){
     var updateCharCounter = function(charCount) {
       // debugger;
       $("span.count")[0].innerText = (charCount + charCountCharLimitDivider + charLimit);
-      debugger;
       if (charCount > charLimit && notificationAlreadyDisplayedOnce === false) {
         charLimitExceededNotification();
         notificationAlreadyDisplayedOnce = true;
