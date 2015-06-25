@@ -5,11 +5,30 @@
   "version": "0.0.1.5",
   "default locale": "en",
   "icons": { "128": "imgs/pledge_pin.png"},
+  "permissions": [
+    "identity",
+    "*://*.google.com/*"
+    ],
+  "background": {
+    "scripts": ["scripts/base64.js", "scripts/background.js"]
+  },
   "content_scripts" : [
     {
       "matches": ["*://mail.google.com/mail/*"],
       "js": ["js/jquery.js", "js/compose.js", "bower_components/jqnotifybar/jquery.notifyBar.js"],
       "css": ["css/stylesheet.css", "bower_components/jqnotifybar/css/jquery.notifyBar.css"]
     }
-  ]
+  ],
+  "content_security_policy": "script-src https://*.google.com 'unsafe-eval'; object-src 'self'",
+  "oauth2": {
+    "client_id": "887620817404-05g424mgdqpa6dm3trah3h83jbrtk9di.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapies.com/auth/gmail.modify"
+    ]
+  }
+
 }
+
+
+// Helpful article for setting up a Chrome Extension with gmail:
+// http://developer.streak.com/2014/10/how-to-use-gmail-api-in-chrome-extension.html?showComment=1435186907553

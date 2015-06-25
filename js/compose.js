@@ -12,6 +12,7 @@ var insertListener = function(event){
     }
 
     var charLimitExceededNotification = function() {
+      // Thanks to Dmitri for this plugin: http://www.whoop.ee/posts/2013/04/05/the-resurrection-of-jquery-notify-bar.html
       $(function () {
         $.notifyBar({
           cssClass: "too-long",
