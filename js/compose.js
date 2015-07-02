@@ -10,7 +10,10 @@
 //   });
 
 chrome.runtime.sendMessage({greeting: "hello"}, function(response) {
+  console.log("Front-end callback executed")
   console.log(response);
+  // console.log(response.token)
+  // console.log(response.token);
   // console.log(response.farewell);
 });
 

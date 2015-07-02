@@ -6,16 +6,27 @@
 //   });
 // });
 
-  chrome.identity.getAuthToken({ 'interactive': true }, function(token) {
-    return token;
-  });
 
-chrome.runtime.onMessage.addListener(
-  function(message,sender,sendResponse){
+// var fetchAuthToken =
 
-  sendResponse({farewell:token});
+chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
+  if (changeInfo.status == 'complete') {
+    chrome.identity.getAuthToken({ 'interactive': true }, function(token) {
+      thisToken = token
+      chrome.runtime.onMessage.addListener(
+        function(request,sender,sendResponse){
+          alert("I AM HERE")
+          alert(thisToken)
+          sendResponse({token: thisToken});
+        }
+      );
+    });
+  }
+})
 
-});
+
+
+
 
 
 //////////////// END TESTING
