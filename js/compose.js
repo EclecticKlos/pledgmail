@@ -1,13 +1,37 @@
+//////////////// BEGIN TESTING
+
+// chrome.runtime.onMessage.addListener(
+//   function(request, sender, sendResponse) {
+//     console.log(sender.tab ?
+//                 "from a content script:" + sender.tab.url :
+//                 "from the extension");
+//     if (request.greeting == "hello")
+//       sendResponse({farewell: "goodbye"});
+//   });
+
+chrome.runtime.sendMessage({greeting: "hello"}, function(response) {
+  console.log("Front-end callback executed")
+  console.log(response);
+  // console.log(response.token)
+  // console.log(response.token);
+  // console.log(response.farewell);
+});
+
+
+
+//////////////// END TESTING
+
+
+
 var insertListener = function(event){
 
   if (event.animationName === "nodeInserted") {
     // Thanks to David Walsh (http://davidwalsh.name/detect-node-insertion) for this animation listener trick
 
     var makeCharCounterSpan = function() {
-      // span.textContent = charCount;
       span.setAttribute('class', 'count');
-      span.setAttribute('style', 'color: red');
-      span.style.fontSize = "77%";
+      span.setAttribute('style', 'color: #DC143C');
+      span.style.fontSize = "medium";
       $("tr.n1tfz td:nth-child(5) div")[0].appendChild(span)
     }
 
@@ -111,6 +135,22 @@ var insertListener = function(event){
   }
 };
 
+
 document.addEventListener("webkitAnimationStart", insertListener, false);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
