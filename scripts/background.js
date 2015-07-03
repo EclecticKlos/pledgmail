@@ -12,12 +12,50 @@
 chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
   if (changeInfo.status == 'complete') {
     chrome.identity.getAuthToken({ 'interactive': true }, function(token) {
-      thisToken = token
+      // thisToken = token
       chrome.runtime.onMessage.addListener(
         function(request,sender,sendResponse){
           alert("I AM HERE")
-          alert(thisToken)
-          sendResponse({token: thisToken});
+
+
+            var getListOfThreadsFromGAPI = function listThreads(userId, callback) {
+              alert("I AM HERE 2222")
+              var getPageOfThreads = function(request, result) {
+                request.execute(function (resp) {
+                  alert("I AM HERE 4444")
+                  result = result.concat(resp.threads);
+                  var nextPageToken = resp.nextPageToken;
+                  if (nextPageToken) {
+                    request = gapi.client.gmail.users.threads.list({
+                      'userId': me,
+                      'pageToken': nextPageToken
+                    });
+                    getPageOfThreads(request, result);
+                  } else {
+                    callback(result);
+                  }
+                });
+              };
+              alert("I AM HERE 33333")
+              alert(gapi.client.gmail.users.threads.list({
+                'userId': userId
+              }))
+              var request = gapi.client.gmail.users.threads.list({
+                'userId': userId
+              });
+              alert("I AM HERE 4444")
+              getPageOfThreads(request, []);
+            }
+
+            alert("Before function execution")
+            var testListOfThreads = getListOfThreadsFromGAPI("me")
+
+            alert(testListOfThreads)
+
+
+
+
+          // sendResponse({token: thisToken});
         }
       );
     });
