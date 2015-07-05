@@ -6,61 +6,80 @@
 //   });
 // });
 
+var nonAuthApiKey = "AIzaSyB2V-yBQqZB6U3vM4urVKpBoksYXW2IeMs"
+alert("Background page")
 
-// var fetchAuthToken =
+  chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
+    if (changeInfo.status == 'complete') {
+      chrome.identity.getAuthToken({ 'interactive': true }, function(token) {
+        thisToken = token
+        alert("HERE")
+        chrome.runtime.onMessage.addListener(
+          function(request,sender,sendResponse){
+            var gapiRequestUrlAndToken = "https://www.googleapis.com/gmail/v1/users/me/threads?access_token=" + thisToken
 
-chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
-  if (changeInfo.status == 'complete') {
-    chrome.identity.getAuthToken({ 'interactive': true }, function(token) {
-      // thisToken = token
-      chrome.runtime.onMessage.addListener(
-        function(request,sender,sendResponse){
-          alert("I AM HERE")
+            var hopeThisWorks = function (gapiRequestURL)
+              {
+                  var xmlHttp = new XMLHttpRequest();
+                  xmlHttp.open( "GET", gapiRequestURL, false );
+                  xmlHttp.send( null );
+                  return xmlHttp.responseText;
+              }
 
-
-            var getListOfThreadsFromGAPI = function listThreads(userId, callback) {
-              alert("I AM HERE 2222")
-              var getPageOfThreads = function(request, result) {
-                request.execute(function (resp) {
-                  alert("I AM HERE 4444")
-                  result = result.concat(resp.threads);
-                  var nextPageToken = resp.nextPageToken;
-                  if (nextPageToken) {
-                    request = gapi.client.gmail.users.threads.list({
-                      'userId': me,
-                      'pageToken': nextPageToken
-                    });
-                    getPageOfThreads(request, result);
-                  } else {
-                    callback(result);
-                  }
-                });
-              };
-              alert("I AM HERE 33333")
-              alert(gapi.client.gmail.users.threads.list({
-                'userId': userId
-              }))
-              var request = gapi.client.gmail.users.threads.list({
-                'userId': userId
-              });
-              alert("I AM HERE 4444")
-              getPageOfThreads(request, []);
-            }
-
-            alert("Before function execution")
-            var testListOfThreads = getListOfThreadsFromGAPI("me")
-
-            alert(testListOfThreads)
+            alert(gapiRequestUrlAndToken)
+            alert("didnt break")
+            alert(hopeThisWorks(gapiRequestUrlAndToken));
+            alert("STILL didnt break")
 
 
 
 
-          // sendResponse({token: thisToken});
-        }
-      );
-    });
-  }
-})
+
+
+
+              // var getListOfThreadsFromGAPI = function listThreads(userId, callback) {
+              //   // alert("I AM HERE 2222")
+              //   var getPageOfThreads = function(request, result) {
+              //     request.execute(function (resp) {
+              //       // alert("I AM HERE 4444")
+              //       result = result.concat(resp.threads);
+              //       var nextPageToken = resp.nextPageToken;
+              //       if (nextPageToken) {
+              //         request = gapi.client.gmail.users.threads.list({
+              //           'userId': me,
+              //           'pageToken': nextPageToken
+              //         });
+              //         getPageOfThreads(request, result);
+              //       } else {
+              //         callback(result);
+              //       }
+              //     });
+              //   };
+              //   // alert("I AM HERE 33333")
+              //   // alert(thisToken)
+              //   // alert(gapi)
+              //   var request = gapi.client.gmail.users.threads.list({
+              //     'userId': userId
+              //   });
+              //   // alert("I AM HERE 4444")
+              //   getPageOfThreads(request, []);
+              // }
+
+              // // alert("Before function execution")
+              // var testListOfThreads = getListOfThreadsFromGAPI("me")
+
+              // // alert(testListOfThreads)
+
+
+
+
+            // sendResponse({token: thisToken});
+          }
+        );
+      });
+    }
+  })
+// });
 
 
 
