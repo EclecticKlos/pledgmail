@@ -1,29 +1,20 @@
-//////////////// BEGIN TESTING
-
-// chrome.runtime.onMessage.addListener(
-//   function(request, sender, sendResponse) {
-//     console.log(sender.tab ?
-//                 "from a content script:" + sender.tab.url :
-//                 "from the extension");
-//     if (request.greeting == "hello")
-//       sendResponse({farewell: "goodbye"});
-//   });
-
-chrome.runtime.sendMessage({greeting: "hello"}, function(response) {
-  console.log("Front-end callback executed")
-  console.log(response);
-  // console.log(response.token)
-  // console.log(response.token);
-  // console.log(response.farewell);
-});
-
-
-
-//////////////// END TESTING
-
-
 
 var insertListener = function(event){
+
+
+//////////////////// BEGIN Experimenting with threads/gapi
+
+  chrome.runtime.sendMessage({greeting: "hello"}, function(response) {
+    console.log("Front-end callback executed")
+    // console.log(response);
+    // console.log(response.token)
+    // console.log(response.token);
+    // console.log(response.farewell);
+  });
+
+//////////////////// END Experimenting with threads/gapi
+
+
 
   if (event.animationName === "nodeInserted") {
     // Thanks to David Walsh (http://davidwalsh.name/detect-node-insertion) for this animation listener trick
