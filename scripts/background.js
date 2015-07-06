@@ -1,19 +1,21 @@
 //////////////// BEGIN TESTING
 
-// chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-//   chrome.tabs.sendMessage(tabs[0].id, {greeting: "hello"}, function(response) {
-//     console.log(response.farewell);
-//   });
-// });
 
-var nonAuthApiKey = "AIzaSyB2V-yBQqZB6U3vM4urVKpBoksYXW2IeMs"
-alert("Background page")
+// var nonAuthApiKey = "AIzaSyB2V-yBQqZB6U3vM4urVKpBoksYXW2IeMs"
+
+// $.getScript('https://apis.google.com/js/client.js?onload=init', function(){
+
+  // alert("Inside the script")
+  // function init() {
+  //   gapi.client.setApiKey(nonAuthApiKey);
+  //   alert("Set API key fired")
+  // }
 
   chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
     if (changeInfo.status == 'complete') {
       chrome.identity.getAuthToken({ 'interactive': true }, function(token) {
         thisToken = token
-        alert("HERE")
+        // alert("HERE")
         chrome.runtime.onMessage.addListener(
           function(request,sender,sendResponse){
             var gapiRequestUrlAndToken = "https://www.googleapis.com/gmail/v1/users/me/threads?access_token=" + thisToken
@@ -26,11 +28,18 @@ alert("Background page")
                   return xmlHttp.responseText;
               }
 
-            alert(gapiRequestUrlAndToken)
-            alert("didnt break")
-            alert(hopeThisWorks(gapiRequestUrlAndToken));
+
+            alert(gapiRequestUrlAndToken);
+            alert("didnt break");
+            var threadList = hopeThisWorks(gapiRequestUrlAndToken)
+            alert(threadList);
             alert("STILL didnt break")
 
+            chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+              chrome.tabs.sendMessage(tabs[0].id, {greeting: threadList}, function(response) {
+                alert(response.farewell);
+              });
+            });
 
 
 
