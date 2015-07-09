@@ -2,6 +2,7 @@
 var insertListener = function(event){
 
 
+
 //////////////////// BEGIN Experimenting with threads/gapi
 
   chrome.runtime.sendMessage({greeting: "hello"}, function(response) {
@@ -10,6 +11,15 @@ var insertListener = function(event){
     // console.log(response.token)
     // console.log(response.token);
     // console.log(response.farewell);
+  });
+
+  chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+    console.log(sender.tab ?
+                "from a content script:" + sender.tab.url :
+                "from the extension");
+    if (request.data)
+      console.log(request.data)
+      // sendResponse({farewell: "goodbye"});
   });
 
 //////////////////// END Experimenting with threads/gapi

@@ -1,39 +1,69 @@
 //////////////// BEGIN TESTING
+  var background = chrome.extension.getBackgroundPage();
 
-// chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-//   chrome.tabs.sendMessage(tabs[0].id, {greeting: "hello"}, function(response) {
-//     console.log(response.farewell);
-//   });
-// });
+// var nonAuthApiKey = "AIzaSyB2V-yBQqZB6U3vM4urVKpBoksYXW2IeMs"
 
-var nonAuthApiKey = "AIzaSyB2V-yBQqZB6U3vM4urVKpBoksYXW2IeMs"
-alert("Background page")
+// $.getScript('https://apis.google.com/js/client.js?onload=init', function(){
+
+  // alert("Inside the script")
+  // function init() {
+  //   gapi.client.setApiKey(nonAuthApiKey);
+  //   alert("Set API key fired")
+  // }
+
+
 
   chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
     if (changeInfo.status == 'complete') {
       chrome.identity.getAuthToken({ 'interactive': true }, function(token) {
         thisToken = token
-        alert("HERE")
+        // alert("HERE")
         chrome.runtime.onMessage.addListener(
           function(request,sender,sendResponse){
-            var gapiRequestUrlAndToken = "https://www.googleapis.com/gmail/v1/users/me/threads?access_token=" + thisToken
+            var gapiRequestAllThreadsAndToken = "https://www.googleapis.com/gmail/v1/users/me/threads?access_token=" + thisToken
+            var gapiRequestInboxThreadsAndToken = "https://www.googleapis.com/gmail/v1/users/me/threads?q=-from%3Ame+in%3Ainbox&access_token=" + thisToken
 
-            var hopeThisWorks = function (gapiRequestURL)
+            var getAllThreads = function (gapiRequestURL)
               {
                   var xmlHttp = new XMLHttpRequest();
                   xmlHttp.open( "GET", gapiRequestURL, false );
                   xmlHttp.send( null );
                   return xmlHttp.responseText;
               }
+            var allThreads = getAllThreads(gapiRequestInboxThreadsAndToken)
+            var messageID = JSON.parse(allThreads).threads[0].id
 
-            alert(gapiRequestUrlAndToken)
-            alert("didnt break")
-            alert(hopeThisWorks(gapiRequestUrlAndToken));
-            alert("STILL didnt break")
+            // var gapiRequestMessageWithId = "https://www.googleapis.com/gmail/v1/users/me/messages/" + messageID + "?access_token=" + thisToken
+
+            // var getSpecificMessageById = function (gapiRequestURL)
+            //   {
+            //       var xmlHttp = new XMLHttpRequest();
+            //       xmlHttp.open( "GET", gapiRequestURL, false );
+            //       xmlHttp.send( null );
+            //       return xmlHttp.responseText;
+            //   }
+
+            // specificMessage = getSpecificMessageById(gapiRequestMessageWithId)
 
 
+            // var gapiRequestAllThreadsToSelf = "https://www.googleapis.com/gmail/v1/users/me/messages?format=metadata&access_token=" + thisToken
+
+            // var getAllThreadsToSelf = function (gapiRequestURL)
+            //   {
+            //       var xmlHttp = new XMLHttpRequest();
+            //       xmlHttp.open( "GET", gapiRequestURL, false );
+            //       xmlHttp.send( null );
+            //       return xmlHttp.responseText;
+            //   }
+
+            // var threadsToSelf = getAllThreadsToSelf(gapiRequestAllThreadsToSelf)
 
 
+            chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+              chrome.tabs.sendMessage(tabs[0].id, {data: allThreads}, function(response) {
+                // alert(response.farewell);
+              });
+            });
 
 
 
