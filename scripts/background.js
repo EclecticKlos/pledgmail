@@ -54,12 +54,12 @@
             var gapiRequestMessageWithId = "";
             var getMessageContents = function(messageIdList)
             {
-              for(var i=0; i < messageIdList.length - (messageIdList.length - 1); i++)
+              for(var i=0; i < messageIdList.length; i++)
               {
                 gapiRequestMessageWithId = "https://www.googleapis.com/gmail/v1/users/me/messages/" + messageIdList[i] + "?access_token=" + thisToken
                 var currentMessage = JSON.parse(getSpecificMessageById(gapiRequestMessageWithId))
                 var encodedMessageContents = currentMessage.payload.parts[0].body.data
-                var decodedMessageContents = atob( encodedMessageContents);
+                var decodedMessageContents = atob(encodedMessageContents.replace(/-/g, '+').replace(/_/g, '/'));
                 messageContents.push(decodedMessageContents)
               }
             }
@@ -72,7 +72,6 @@
                 // alert(response.farewell);
               });
             });
-
 
 
               // var getListOfThreadsFromGAPI = function listThreads(userId, callback) {
