@@ -20,10 +20,11 @@
         // alert("HERE")
         chrome.runtime.onMessage.addListener(
           function(request,sender,sendResponse){
-            var gapiRequestAllThreadsAndToken = "https://www.googleapis.com/gmail/v1/users/me/threads?access_token=" + thisToken
             var gapiRequestInboxThreadsAndToken = "https://www.googleapis.com/gmail/v1/users/me/threads?q=-from%3Ame+in%3Ainbox&access_token=" + thisToken
+            var gapiRequestInboxMessagesAndToken = "https://www.googleapis.com/gmail/v1/users/me/messages?q=-label%3ASENT+in%3AINBOX&access_token=" + thisToken
 
-            var getAllThreads = function (gapiRequestURL)
+
+            var gapiGETRequest = function (gapiRequestURL)
               {
                   var xmlHttp = new XMLHttpRequest();
                   xmlHttp.open( "GET", gapiRequestURL, false );
@@ -31,44 +32,88 @@
                   return xmlHttp.responseText;
               }
 
-            var allThreads = getAllThreads(gapiRequestInboxThreadsAndToken);
+            var allThreads = gapiGETRequest(gapiRequestInboxThreadsAndToken);
+            var allMessagesReceived = gapiGETRequest(gapiRequestInboxMessagesAndToken)
             var allThreadsObject = JSON.parse(allThreads);
+            var allMessagesObject = JSON.parse(allMessagesReceived)
             var messageIdsOfMessagesWithContent = [];
-            var getIdsOfMessagesWithContents = function(messageObject){
-              for(var i=0; i < messageObject.threads.length; i ++) {
-                if (messageObject.threads[i].snippet) {
-                  messageIdsOfMessagesWithContent.push(messageObject.threads[i].id);
-                }
+            var getIdsOfMessagesWithContents = function(responseObject){
+              for(var i=0; i < responseObject.messages.length; i ++) {
+                messageIdsOfMessagesWithContent.push(responseObject.messages[i].id);
               }
             }
 
-            var getSpecificMessageById = function (gapiRequestURL)
-            {
-              var xmlHttp = new XMLHttpRequest();
-              xmlHttp.open( "GET", gapiRequestURL, false );
-              xmlHttp.send( null );
-              return xmlHttp.responseText;
-            }
-
-            var messageContents = [];
+            var messageContentsArr = [];
             var gapiRequestMessageWithId = "";
             var getMessageContents = function(messageIdList)
             {
               for(var i=0; i < messageIdList.length; i++)
               {
                 gapiRequestMessageWithId = "https://www.googleapis.com/gmail/v1/users/me/messages/" + messageIdList[i] + "?access_token=" + thisToken
-                var currentMessage = JSON.parse(getSpecificMessageById(gapiRequestMessageWithId))
+                var currentMessage = JSON.parse(gapiGETRequest(gapiRequestMessageWithId))
                 var encodedMessageContents = currentMessage.payload.parts[0].body.data
                 var decodedMessageContents = atob(encodedMessageContents.replace(/-/g, '+').replace(/_/g, '/'));
-                messageContents.push(decodedMessageContents)
+                messageContentsArr.push(decodedMessageContents)
               }
             }
 
-            getIdsOfMessagesWithContents(allThreadsObject);
-            getMessageContents(messageIdsOfMessagesWithContent)
+            getIdsOfMessagesWithContents(allMessagesObject);
+            getMessageContents(messageIdsOfMessagesWithContent);
+
+
+            // var params = {
+            //   userId: 'me',
+            //   name:'posting test label',
+            //   labelListVisibility:'labelShow',
+            //   messageListVisibility:'show',
+            //   name:'thisIsMyPostTestLabel'
+            // };
+            // http.open("POST", url, true);
+
+            // //Send the proper header information along with the request
+            // // http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            // // http.setRequestHeader("Content-length", params.length);
+            // // http.setRequestHeader("Connection", "close");
+
+            // http.onreadystatechange = function() {//Call a function when the state changes.
+            //   if(http.readyState == 4 && http.status == 200) {
+            //     alert(http.responseText);
+            //   }
+            // }
+            // http.send(params);
+
+            // var postRequestUrl = "https://www.googleapis.com/gmail/v1/users/me/labels?access_token" + thisToken;
+            // var makePostRequest = function (gapiRequestURL)
+            // {
+            //   var params = {
+            //     userId: 'me',
+            //     name:'posting test label',
+            //     labelListVisibility:'labelShow',
+            //     messageListVisibility:'show',
+            //     name:'thisIsMyPostTestLabel'
+            //   };
+            //   var xmlHttp = new XMLHttpRequest();
+            //   xmlHttp.open( "POST", gapiRequestURL, true );
+            //   xmlHttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            //   xmlHttp.setRequestHeader("Content-length", params.length);
+            //   xmlHttp.setRequestHeader("Connection", "close");
+            //   xmlHttp.onreadystatechange = function() {//Call a function when the state changes.
+            //     if(xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+            //       alert("In function")
+            //       alert(xmlHttp.responseText);
+            //     }
+            //   }
+            //   xmlHttp.send( params );
+            //   alert("Worked?")
+            //   alert(xmlHttp.responseText)
+            //   return xmlHttp.responseText;
+            // }
+
+            // myResponseText = makePostRequest(postRequestUrl)
+
 
             chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-              chrome.tabs.sendMessage(tabs[0].id, {data: messageContents}, function(response) {
+              chrome.tabs.sendMessage(tabs[0].id, {data: messageContentsArr}, function(response) {
                 // alert(response.farewell);
               });
             });
