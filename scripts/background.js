@@ -57,32 +57,15 @@
               }
             }
 
-            getIdsOfMessagesWithContents(allMessagesObject);
-            getMessageContents(messageIdsOfMessagesWithContent);
+            // getIdsOfMessagesWithContents(allMessagesObject);
+            // getMessageContents(messageIdsOfMessagesWithContent);
 
 
-            // var params = {
-            //   userId: 'me',
-            //   name:'posting test label',
-            //   labelListVisibility:'labelShow',
-            //   messageListVisibility:'show',
-            //   name:'thisIsMyPostTestLabel'
-            // };
-            // http.open("POST", url, true);
 
-            // //Send the proper header information along with the request
-            // // http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-            // // http.setRequestHeader("Content-length", params.length);
-            // // http.setRequestHeader("Connection", "close");
 
-            // http.onreadystatechange = function() {//Call a function when the state changes.
-            //   if(http.readyState == 4 && http.status == 200) {
-            //     alert(http.responseText);
-            //   }
-            // }
-            // http.send(params);
 
-            // var postRequestUrl = "https://www.googleapis.com/gmail/v1/users/me/labels?access_token" + thisToken;
+
+            var postRequestUrl = "https://www.googleapis.com/gmail/v1/users/me/labels?access_token=" + thisToken;
             // var makePostRequest = function (gapiRequestURL)
             // {
             //   var params = {
@@ -90,7 +73,6 @@
             //     name:'posting test label',
             //     labelListVisibility:'labelShow',
             //     messageListVisibility:'show',
-            //     name:'thisIsMyPostTestLabel'
             //   };
             //   var xmlHttp = new XMLHttpRequest();
             //   xmlHttp.open( "POST", gapiRequestURL, true );
@@ -109,11 +91,41 @@
             //   return xmlHttp.responseText;
             // }
 
+
+            // var jsonInput =  {
+            //   "userId":"me",
+            //   "name":"posting test label",
+            //   "labelListVisibility":"labelShow",
+            //   "messageListVisibility":"show"
+            // };
+
+            // alert(jsonInput)
+            // ajaxRequest.setRequestHeader("Content-Type","application/json");
+            // ajaxRequest.send(jsonInput);
+
+            $.ajax({
+              url: postRequestUrl,
+              method: "POST",
+              contentType: "application/json",
+              data: JSON.stringify({
+                name: "A second test label",
+                labelListVisibility: "labelShow",
+                messageListVisibility: "show"
+              }),
+              success: function(msg){
+                alert(JSON.stringify(msg));
+              },
+              error: function(msg){
+                alert("Error:" + JSON.stringify(msg));
+              }
+            })
+
+
             // myResponseText = makePostRequest(postRequestUrl)
 
 
             chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-              chrome.tabs.sendMessage(tabs[0].id, {data: messageContentsArr}, function(response) {
+              chrome.tabs.sendMessage(tabs[0].id, {data: "hi"}, function(response) {
                 // alert(response.farewell);
               });
             });
