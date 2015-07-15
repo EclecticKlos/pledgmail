@@ -60,60 +60,63 @@
             getIdsOfMessagesWithContents(allMessagesObject);
             getMessageContents(messageIdsOfMessagesWithContent);
 
+            var labelsRequestURL = "https://www.googleapis.com/gmail/v1/users/me/labels?access_token=" + thisToken;
 
-            // var params = {
-            //   userId: 'me',
-            //   name:'posting test label',
-            //   labelListVisibility:'labelShow',
-            //   messageListVisibility:'show',
-            //   name:'thisIsMyPostTestLabel'
-            // };
-            // http.open("POST", url, true);
+            var createLabel = function (gapiRequestURL, labelName)
+            {
 
-            // //Send the proper header information along with the request
-            // // http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-            // // http.setRequestHeader("Content-length", params.length);
-            // // http.setRequestHeader("Connection", "close");
+              $.ajax({
+                url: gapiRequestURL,
+                method: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({
+                  name: labelName,
+                  labelListVisibility: "labelShow",
+                  messageListVisibility: "show"
+                }),
+                success: function(msg){
+                  alert(JSON.stringify(msg));
+                },
+                error: function(msg){
+                  alert("Error:" + JSON.stringify(msg));
+                }
+              })
+            }
 
-            // http.onreadystatechange = function() {//Call a function when the state changes.
-            //   if(http.readyState == 4 && http.status == 200) {
-            //     alert(http.responseText);
-            //   }
-            // }
-            // http.send(params);
+            var existingLabels = JSON.parse(gapiGETRequest(labelsRequestURL))
+            var labelNameForMessageContentTooLong = "TooLong"
+            var labelNameForConciseMessageContent = "Concise"
+            var makePledgmailLabelsIfNecessary = function(){
+              var labelTooLongExists = false;
+              var labelConciseExists = false;
+              for (var i=0; i < existingLabels.labels.length; i++){
+                if (existingLabels.labels[i].name === labelNameForMessageContentTooLong){
+                  labelTooLongExists = true;
+                }
+                else if (existingLabels.labels[i].name === labelNameForConciseMessageContent){
+                  labelConciseExists = true;
+                }
+              }
+              if (labelTooLongExists === false && labelConciseExists === false){
+                createLabel(labelsRequestURL, labelNameForMessageContentTooLong);
+                createLabel(labelsRequestURL, labelNameForConciseMessageContent);
+              }
+              else if (labelTooLongExists === false){
+                createLabel(labelsRequestURL, labelNameForMessageContentTooLong);
+              }
+              else if (labelConciseExists === false){
+                createLabel(labelsRequestURL, labelNameForConciseMessageContent);
+              }
+            }
 
-            // var postRequestUrl = "https://www.googleapis.com/gmail/v1/users/me/labels?access_token" + thisToken;
-            // var makePostRequest = function (gapiRequestURL)
-            // {
-            //   var params = {
-            //     userId: 'me',
-            //     name:'posting test label',
-            //     labelListVisibility:'labelShow',
-            //     messageListVisibility:'show',
-            //     name:'thisIsMyPostTestLabel'
-            //   };
-            //   var xmlHttp = new XMLHttpRequest();
-            //   xmlHttp.open( "POST", gapiRequestURL, true );
-            //   xmlHttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-            //   xmlHttp.setRequestHeader("Content-length", params.length);
-            //   xmlHttp.setRequestHeader("Connection", "close");
-            //   xmlHttp.onreadystatechange = function() {//Call a function when the state changes.
-            //     if(xmlHttp.readyState == 4 && xmlHttp.status == 200) {
-            //       alert("In function")
-            //       alert(xmlHttp.responseText);
-            //     }
-            //   }
-            //   xmlHttp.send( params );
-            //   alert("Worked?")
-            //   alert(xmlHttp.responseText)
-            //   return xmlHttp.responseText;
-            // }
+            makePledgmailLabelsIfNecessary();
 
-            // myResponseText = makePostRequest(postRequestUrl)
+
+
 
 
             chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-              chrome.tabs.sendMessage(tabs[0].id, {data: messageContentsArr}, function(response) {
+              chrome.tabs.sendMessage(tabs[0].id, {data: existingLabels}, function(response) {
                 // alert(response.farewell);
               });
             });

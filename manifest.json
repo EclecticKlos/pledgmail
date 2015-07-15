@@ -14,14 +14,15 @@
     }
   ],
   "background": {
-    "scripts": ["scripts/background.js"]
+    "scripts": ["scripts/background.js", "js/jquery.js"]
   },
   "permissions": [
-    "identity"
+    "identity",
+    "https://www.googleapis.com/*"
   ],
   "oauth2": {
     "client_id": "887620817404-4q33vuj5q7vcm59shqc0s2udcqhv7lah.apps.googleusercontent.com",
-    "scopes": ["https://www.googleapis.com/auth/gmail.modify"]
+    "scopes": ["https://www.googleapis.com/auth/gmail.modify", "https://www.googleapis.com/auth/gmail.labels"]
   }
 }
 
