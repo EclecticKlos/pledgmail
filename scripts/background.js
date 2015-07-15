@@ -57,75 +57,66 @@
               }
             }
 
-            // getIdsOfMessagesWithContents(allMessagesObject);
-            // getMessageContents(messageIdsOfMessagesWithContent);
+            getIdsOfMessagesWithContents(allMessagesObject);
+            getMessageContents(messageIdsOfMessagesWithContent);
 
+            var labelsRequestURL = "https://www.googleapis.com/gmail/v1/users/me/labels?access_token=" + thisToken;
 
+            var createLabel = function (gapiRequestURL, labelName)
+            {
 
+              $.ajax({
+                url: gapiRequestURL,
+                method: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({
+                  name: labelName,
+                  labelListVisibility: "labelShow",
+                  messageListVisibility: "show"
+                }),
+                success: function(msg){
+                  alert(JSON.stringify(msg));
+                },
+                error: function(msg){
+                  alert("Error:" + JSON.stringify(msg));
+                }
+              })
+            }
 
-
-
-            var postRequestUrl = "https://www.googleapis.com/gmail/v1/users/me/labels?access_token=" + thisToken;
-            // var makePostRequest = function (gapiRequestURL)
-            // {
-            //   var params = {
-            //     userId: 'me',
-            //     name:'posting test label',
-            //     labelListVisibility:'labelShow',
-            //     messageListVisibility:'show',
-            //   };
-            //   var xmlHttp = new XMLHttpRequest();
-            //   xmlHttp.open( "POST", gapiRequestURL, true );
-            //   xmlHttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-            //   xmlHttp.setRequestHeader("Content-length", params.length);
-            //   xmlHttp.setRequestHeader("Connection", "close");
-            //   xmlHttp.onreadystatechange = function() {//Call a function when the state changes.
-            //     if(xmlHttp.readyState == 4 && xmlHttp.status == 200) {
-            //       alert("In function")
-            //       alert(xmlHttp.responseText);
-            //     }
-            //   }
-            //   xmlHttp.send( params );
-            //   alert("Worked?")
-            //   alert(xmlHttp.responseText)
-            //   return xmlHttp.responseText;
-            // }
-
-
-            // var jsonInput =  {
-            //   "userId":"me",
-            //   "name":"posting test label",
-            //   "labelListVisibility":"labelShow",
-            //   "messageListVisibility":"show"
-            // };
-
-            // alert(jsonInput)
-            // ajaxRequest.setRequestHeader("Content-Type","application/json");
-            // ajaxRequest.send(jsonInput);
-
-            $.ajax({
-              url: postRequestUrl,
-              method: "POST",
-              contentType: "application/json",
-              data: JSON.stringify({
-                name: "A second test label",
-                labelListVisibility: "labelShow",
-                messageListVisibility: "show"
-              }),
-              success: function(msg){
-                alert(JSON.stringify(msg));
-              },
-              error: function(msg){
-                alert("Error:" + JSON.stringify(msg));
+            var existingLabels = JSON.parse(gapiGETRequest(labelsRequestURL))
+            var labelNameForMessageContentTooLong = "TooLong"
+            var labelNameForConciseMessageContent = "Concise"
+            var makePledgmailLabelsIfNecessary = function(){
+              var labelTooLongExists = false;
+              var labelConciseExists = false;
+              for (var i=0; i < existingLabels.labels.length; i++){
+                if (existingLabels.labels[i].name === labelNameForMessageContentTooLong){
+                  labelTooLongExists = true;
+                }
+                else if (existingLabels.labels[i].name === labelNameForConciseMessageContent){
+                  labelConciseExists = true;
+                }
               }
-            })
+              if (labelTooLongExists === false && labelConciseExists === false){
+                createLabel(labelsRequestURL, labelNameForMessageContentTooLong);
+                createLabel(labelsRequestURL, labelNameForConciseMessageContent);
+              }
+              else if (labelTooLongExists === false){
+                createLabel(labelsRequestURL, labelNameForMessageContentTooLong);
+              }
+              else if (labelConciseExists === false){
+                createLabel(labelsRequestURL, labelNameForConciseMessageContent);
+              }
+            }
+
+            makePledgmailLabelsIfNecessary();
 
 
-            // myResponseText = makePostRequest(postRequestUrl)
+
 
 
             chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-              chrome.tabs.sendMessage(tabs[0].id, {data: "hi"}, function(response) {
+              chrome.tabs.sendMessage(tabs[0].id, {data: existingLabels}, function(response) {
                 // alert(response.farewell);
               });
             });
