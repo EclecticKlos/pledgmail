@@ -93,7 +93,7 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
           makePledgmailLabelsIfNecessary();
 
 
-          var applyTooLongLabel = function (gapiRequestURL, labelIdsArr)
+          var applyLabel = function (gapiRequestURL, labelIdsArr)
           {
 
             $.ajax({
@@ -116,21 +116,23 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
             var tempCharLimit = 640;
             var tempLabelIdTooLong = "Label_12"
             var tempLabelIdConcise = "Label_13"
-            var labelIdsArr = []
             var messageID = 0;
             for(var i=0; i < messageContentsArr.length; i++){
+              var labelIdsArr = []
               var currentMessage = messageContentsArr[i]
+              var messageID = currentMessage.id
               var encodedMessageContents = currentMessage.payload.parts[0].body.data
               var decodedMessageContents = atob(encodedMessageContents.replace(/-/g, '+').replace(/_/g, '/'));
 
               if (decodedMessageContents.length > tempCharLimit){
-                messageID = currentMessage.id
                 var labelModifyURL = "https://www.googleapis.com/gmail/v1/users/me/messages/" + messageID + "/modify?access_token=" + thisToken
                 labelIdsArr.push(tempLabelIdTooLong)
-                applyTooLongLabel(labelModifyURL, labelIdsArr)
+                applyLabel(labelModifyURL, labelIdsArr)
               }
               else if (decodedMessageContents.length <= tempCharLimit) {
-                console.log("Concise")
+                var labelModifyURL = "https://www.googleapis.com/gmail/v1/users/me/messages/" + messageID + "/modify?access_token=" + thisToken
+                labelIdsArr.push(tempLabelIdConcise)
+                applyLabel(labelModifyURL, labelIdsArr)
               }
             }
           }
