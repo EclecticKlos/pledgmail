@@ -113,20 +113,20 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
           }
 
       ////////////////////// REFACTOR TO BE A CLOSURE ///////////////////
-          hasSignature = function(messageObject){
+          hasExtraContent = function(messageObject){
             var encodedSignature = messageObject.payload.parts[1].body.data;
             var decodedSignature = atob(encodedSignature.replace(/-/g, '+').replace(/_/g, '/'));
             var html = $.parseHTML(decodedSignature);
-            if ( ($(html).find(".gmail_signature").text().length) === 0 ){
+            if ( ($(html).find(".gmail_extra").text().length) === 0 ){
               return false
             }
             else {
-              return $(html).find(".gmail_signature")
+              return $(html).find(".gmail_extra")
             }
           }
 
-          determineSignatureLength = function(hasSignatureFunc, currentMessage){
-            var signatureContent = hasSignatureFunc(currentMessage);
+          determineExtraContentLength = function(hasExtraContentFunc, currentMessage){
+            var signatureContent = hasExtraContentFunc(currentMessage);
             var signatureLength = 0;
             if (signatureContent){
               signatureLength = signatureContent.text().length;
@@ -139,12 +139,11 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
             var tempLabelIdTooLong = "Label_16";
             var tempLabelIdConcise = "Label_17";
             var messageID = 0;
-            // var signatureLength = determineSignatureLength(hasSignature)
 
             for(var i=0; i < messageContentsArr.length; i++){
               var labelIdsArr = []
               var currentMessage = messageContentsArr[i]
-              var signatureLength = determineSignatureLength(hasSignature, currentMessage);
+              var signatureLength = determineExtraContentLength(hasExtraContent, currentMessage);
               var messageID = currentMessage.id
               var encodedMessageContents = currentMessage.payload.parts[0].body.data
               var decodedMessageContents = atob(encodedMessageContents.replace(/-/g, '+').replace(/_/g, '/'));
