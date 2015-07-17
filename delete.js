@@ -43,52 +43,6 @@
 
 
 
-var applyLabel = function (gapiRequestURL, labelIdsArr)
-{
-
-  $.ajax({
-    url: gapiRequestURL,
-    method: "POST",
-    contentType: "application/json",
-    data: JSON.stringify({
-      addLabelIds: labelIdsArr
-    }),
-    success: function(msg){
-      // alert(JSON.stringify(msg));
-    },
-    error: function(msg){
-      alert("Error:" + JSON.stringify(msg));
-    }
-  })
-}
-
-var decideWhichLabelToApply = function(messageContentsArr){
-  var testLabelOne = "Label_12"
-  var testLabelTwo = "Label_13"
-  var labelIdsArr = []
-
-  for(var i=0; i < messageContentsArr.length; i++){
-    var currentMessage = messageContentsArr[i]
-    var messageID = currentMessage.id
-
-    if (true){
-      var labelModifyURL = "https://www.googleapis.com/gmail/v1/users/me/messages/" + messageID + "/modify?access_token=" + thisToken
-      labelIdsArr.push(testLabelOne)
-      applyLabel(labelModifyURL, labelIdsArr)
-    }
-    else {
-      var labelModifyURL = "https://www.googleapis.com/gmail/v1/users/me/messages/" + messageID + "/modify?access_token=" + thisToken
-      labelIdsArr.push(testLabelTwo)
-      applyLabel(labelModifyURL, labelIdsArr)
-    }
-  }
-}
-
-
-
-
-
-
 
 
 
