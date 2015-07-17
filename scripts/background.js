@@ -148,13 +148,14 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
               var messageID = currentMessage.id
               var encodedMessageContents = currentMessage.payload.parts[0].body.data
               var decodedMessageContents = atob(encodedMessageContents.replace(/-/g, '+').replace(/_/g, '/'));
+              var totalMessageLength = decodedMessageContents.length - signatureLength
 
-              if (decodedMessageContents.length > tempCharLimit){
+              if (totalMessageLength > tempCharLimit){
                 var labelModifyURL = "https://www.googleapis.com/gmail/v1/users/me/messages/" + messageID + "/modify?access_token=" + thisToken
                 labelIdsArr.push(tempLabelIdTooLong)
                 applyLabel(labelModifyURL, labelIdsArr)
               }
-              else if (decodedMessageContents.length <= tempCharLimit) {
+              else if (totalMessageLength <= tempCharLimit) {
                 var labelModifyURL = "https://www.googleapis.com/gmail/v1/users/me/messages/" + messageID + "/modify?access_token=" + thisToken
                 labelIdsArr.push(tempLabelIdConcise)
                 applyLabel(labelModifyURL, labelIdsArr)
