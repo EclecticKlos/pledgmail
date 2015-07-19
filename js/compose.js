@@ -1,32 +1,31 @@
 
-var insertListener = function(event){
 
+    chrome.runtime.sendMessage({greeting: "hello"}, function(response) {
+      console.log("Front-end callback executed")
+      // console.log(response);
+      // console.log(response.token)
+      // console.log(response.token);
+      // console.log(response.farewell);
+    });
 
+    chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+      console.log("Message received")
+      console.log(sender.tab ?
+                  "from a content script:" + sender.tab.url :
+                  "from the extension");
+      if (request.data)
+        console.log(request.data)
+        // sendResponse({farewell: "goodbye"});
+    });
+// var insertBackgroundListener = function(event){
+//   if (event.animationName === "backgroundJSNodeInserted") {
+//     console.log("THIS LISTENER WORKED")
+//   }
+// }
 
-//////////////////// BEGIN Experimenting with threads/gapi
+var insertComposeListener = function(event){
 
-  chrome.runtime.sendMessage({greeting: "hello"}, function(response) {
-    console.log("Front-end callback executed")
-    // console.log(response);
-    // console.log(response.token)
-    // console.log(response.token);
-    // console.log(response.farewell);
-  });
-
-  chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-    console.log(sender.tab ?
-                "from a content script:" + sender.tab.url :
-                "from the extension");
-    if (request.data)
-      console.log(request.data)
-      // sendResponse({farewell: "goodbye"});
-  });
-
-//////////////////// END Experimenting with threads/gapi
-
-
-
-  if (event.animationName === "nodeInserted") {
+  if (event.animationName === "composeJSnodeInserted") {
     // Thanks to David Walsh (http://davidwalsh.name/detect-node-insertion) for this animation listener trick
 
     var makeCharCounterSpan = function() {
@@ -122,9 +121,7 @@ var insertListener = function(event){
     var charCount = undefined;
     var checkForCharactersInCompose = window.setInterval(function() {
       if (charactersInCompose != undefined || charactersInCompose != '') {
-        console.log("Inside the interval");
-        console.log(charactersInCompose);
-        console.log(charactersInCompose.length);
+        console.log("Counter Activated");
         window.clearInterval(checkForCharactersInCompose);
       makeCharCounterSpan();
       keyupListener();
@@ -136,8 +133,8 @@ var insertListener = function(event){
   }
 };
 
-
-document.addEventListener("webkitAnimationStart", insertListener, false);
+// document.addEventListener("webkitAnimationStart", insertBackgroundListener, false);
+document.addEventListener("webkitAnimationStart", insertComposeListener, false);
 
 
 
