@@ -2,9 +2,9 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
   if (changeInfo.status == 'complete') {
     chrome.identity.getAuthToken({ 'interactive': true }, function(token) {
       thisToken = token
-      // alert("HERE")
       chrome.runtime.onMessage.addListener(
         function(request,sender,sendResponse){
+
           var gapiRequestInboxThreadsAndToken = "https://www.googleapis.com/gmail/v1/users/me/threads?q=-from%3Ame+in%3Ainbox&access_token=" + thisToken
           var gapiRequestInboxMessagesAndToken = "https://www.googleapis.com/gmail/v1/users/me/messages?q=-label%3ASENT+in%3AINBOX&access_token=" + thisToken
 
