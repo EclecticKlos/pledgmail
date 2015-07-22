@@ -204,6 +204,8 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
           decideWhichLabelToApply(conciseMessageLabelId, lengthyMessageLabelId)
 
 
+
+
           chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
             chrome.tabs.sendMessage(tabs[0].id, {data: "Hi"}, function(response) {
             });

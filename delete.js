@@ -54,21 +54,13 @@
 
 
 
+tables = html[1].getElementsByTagName("table");
+tableString = "";
+for(var i=0; i < tables.length; i++){
+  tableString.push(tables[i].innerText)
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+str = str.replace(/\s/g, '');
 
 
 
