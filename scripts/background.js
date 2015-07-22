@@ -120,88 +120,136 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
             })
           }
 
-      ////////////////////// REFACTOR TO BE A CLOSURE ///////////////////
-          hasExtraContent = function(messageObject){
-            var encodedExtraContent = messageObject.payload.parts[1].body.data;
-            var decodedExtraContent = atob(encodedExtraContent.replace(/-/g, '+').replace(/_/g, '/'));
-            var html = $.parseHTML(decodedExtraContent);
-            if ( ($(html).find(".gmail_extra").text().length) === 0 ){
-              return false
+
+
+      //////////////////////   vvv    REFACTOR TO BE A CLOSURE???    vvv   ///////////////////
+      //// REFACTOR NOTES:
+        // "nonGmail" really means nonGmailReply
+        // messageContentNode === MessageContentData
+
+
+
+          var findContentNode = function(messageObject) {
+            if (messageObject.payload.hasOwnProperty("parts")){
+              if (messageObject.payload.parts[1]){
+                isGmailContent = true;
+                return messageObject.payload.parts[0].body.data;
+              }
+              else if (messageObject.payload.parts[0]){
+                if (messageObject.payload.parts[0].parts){
+                  debugger
+                  // Debugger placed as the logic for this case is likely not be complete
+                  // Need to check if the node below does in fact contain the data, if not add a case
+                  return messageObject.payload.parts[0].parts[1].body.data;
+                }
+                else {
+                  debugger
+                  // Debugger placed as the logic for this case is likely not be complete
+                  // Need to check if the node below does in fact contain the data, if not add a case
+                  return messageObject.payload.parts[0].body.data;
+                }
+              }
+            }
+            else if (messageObject.payload.body) {
+              return messageObject.payload.body.data
+            }
+          }
+
+          var returnAppropriateContentFormat = function(messageObject) {
+            var messageContentNode = findContentNode(messageObject);
+            var messageHTMLContent = decodeAndReturnParsedHTML(messageContentNode);
+            var messageTextContent = messageHTMLContent;
+            if (isGmailContent === true){
+              return messageHTMLContent
             }
             else {
-              return $(html).find(".gmail_extra")
+              return messageTextContent
             }
           }
 
-          nonGmailMailLength1 = function(messageObject){
-            var encodedContent = messageObject.payload.body.data;
-            var decodedContent = atob(encodedContent.replace(/-/g, '+').replace(/_/g, '/'));
-            var html = $.parseHTML(decodedContent);
-            return html[2].innerText.length
-          }
-
-          nonGmailMailLength2 = function(messageObject){
-            if (messageObject.payload.parts[0].parts){
-              var encodedContent = messageObject.payload.parts[0].parts[1].body.data
+          var decodeAndReturnParsedHTML = function(messageContentNode) {
+            var encodedContent = messageContentNode;
+            if (encodedContent) {
               var decodedContent = atob(encodedContent.replace(/-/g, '+').replace(/_/g, '/'));
-              var html = $.parseHTML(decodedContent);
-              return html[11].innerText.length
             }
             else {
-            var encodedContent = messageObject.payload.parts[0].body.data;
-            var decodedContent = atob(encodedContent.replace(/-/g, '+').replace(/_/g, '/'));
-            var html = $.parseHTML(decodedContent);
-            return html[2].innerText.length
+              var decodedContent = ""
+            }
+            // var html = $.parseHTML(decodedContent);
+            return decodedContent;
+          }
+
+//////// Length determining
+          var determineEmailLength = function(fullMessageObject){
+            if (isGmailContent === true){
+              gmailEmailLength = gmailContentLength(fullMessageObject);
+              return gmailEmailLength;
+            }
+            else {
+              nonGmailEmailLength = nonGmailContentLength(fullMessageObject);
+              return nonGmailEmailLength;
             }
           }
 
-          determineExtraContentLength = function(hasExtraContentFunc, currentMessage){
-            var extraContent = hasExtraContentFunc(currentMessage);
-            var extraContentLength = 0;
-            if (extraContent){
-              extraContentLength = extraContent.text().length;
-            };
-            return extraContentLength;
+// Gmail
+          gmailExtraContentLength = function(messageHTMLContent){
+            var gmailExtraLength = $(messageHTMLContent).find(".gmail_extra").text().length
+            if (gmailExtraLength === 0 ){
+              return 0
+            }
+            else {
+              return gmailExtraLength
+            }
           }
 
-          var decideWhichLabelToApply = function(conciseMsgLabelName, lengthyMsgLabelName){
-            var tempCharLimit = 640;
-            var messageID = 0;
+          gmailContentLength = function(fullMessageObject){
+            var messageHTMLContent = returnAppropriateContentFormat(fullMessageObject);
+            var totalMessageLength = messageHTMLContent.length;
+            var extraContentLength = gmailExtraContentLength(messageHTMLContent);
+            var messageLengthMinusExtra = totalMessageLength - extraContentLength;
+            return messageLengthMinusExtra
+          }
 
-            for(var i=0; i < messageContentsArr.length && i < 30; i++){
-              var labelIdsArr = []
-              var currentMessage = messageContentsArr[i]
-              if (currentMessage.payload.parts) {
-                if (currentMessage.payload.parts[1]) {
-                  var extraContentLength = determineExtraContentLength(hasExtraContent, currentMessage);
-                  var messageID = currentMessage.id
-                  var encodedMessageContents = currentMessage.payload.parts[0].body.data
-                  var decodedMessageContents = atob(encodedMessageContents.replace(/-/g, '+').replace(/_/g, '/'));
-                  var totalMessageLength = decodedMessageContents.length - extraContentLength
-                }
-                else if (currentMessage.payload.parts[0]){
-                  var totalMessageLength = nonGmailMailLength2(currentMessage)
-                }
-              }
-              else if (currentMessage.payload.body.data){
-                var totalMessageLength = nonGmailMailLength1(currentMessage);
-              }
+// Non-gmail
+          var nonGmailContentLength = function(messageObject) {
+            var messageContent = returnAppropriateContentFormat(messageObject);
+            var messageContentLength = messageContent.length;
+            return messageContentLength
+          }
+
+//////// tableContentParser
+// *Still must write
 
 
-              if (totalMessageLength > tempCharLimit){
-                var labelModifyURL = "https://www.googleapis.com/gmail/v1/users/me/messages/" + messageID + "/modify?access_token=" + chromeIdentityToken
-                labelIdsArr.push(lengthyMsgLabelName)
-                applyLabel(labelModifyURL, labelIdsArr)
+//////// Apply label                                                  **currentMessage needs to be passed as arg
+          var extraContent = 0;  // This may not be necessary
+          var tempCharLimit = 640;
+          var isGmailContent = false;
+
+          var applyAppropriateLabel = function(conciseMsgLabelId, lengthyMsgLabelId) {
+            for(var i=0; i < messageContentsArr.length && i < 11; i++){
+              isGmailContent = false;
+              var labelIdsArr = [];
+              var currentMessage = messageContentsArr[i];
+              var messageID = currentMessage.id;
+              var emailLength = determineEmailLength(currentMessage);
+              var labelModifyURL = "https://www.googleapis.com/gmail/v1/users/me/messages/" + messageID + "/modify?access_token=" + chromeIdentityToken;
+
+              if (emailLength > tempCharLimit){
+                labelIdsArr.push(lengthyMsgLabelId);
+                applyLabel(labelModifyURL, labelIdsArr);
               }
-              else if (totalMessageLength <= tempCharLimit) {
-                var labelModifyURL = "https://www.googleapis.com/gmail/v1/users/me/messages/" + messageID + "/modify?access_token=" + chromeIdentityToken
-                labelIdsArr.push(conciseMsgLabelName)
-                applyLabel(labelModifyURL, labelIdsArr)
+              else if (emailLength <= tempCharLimit) {
+                labelIdsArr.push(conciseMsgLabelId);
+                applyLabel(labelModifyURL, labelIdsArr);
               }
             }
           }
 
-          decideWhichLabelToApply(conciseMessageLabelId, lengthyMessageLabelId)
+
+          applyAppropriateLabel(conciseMessageLabelId, lengthyMessageLabelId)
+
+
 
 
 
