@@ -12,3 +12,7 @@ var mjName = celebrityName ("Michael"); // At this juncture, the celebrityName o
 // The closure (lastName) is called here after the outer function has returned above
 // Yet, the closure still has access to the outer function's variables and parameter
 console.log(mjName ("Jackson")); // This celebrity is Michael Jackson
+
+
+
+
