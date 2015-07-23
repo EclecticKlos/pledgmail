@@ -21,6 +21,7 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
           var allMessagesObject = JSON.parse(allMessagesReceived)
           var messageIdsOfMessagesWithContent = [];
           var getIdsOfMessagesWithContents = function(responseObject){
+            console.log(responseObject)
             for(var i=0; i < responseObject.messages.length; i ++) {
               messageIdsOfMessagesWithContent.push(responseObject.messages[i].id);
             }
@@ -141,6 +142,7 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
                   // Debugger placed as the logic for this case is likely not be complete
                   // Need to check if the node below does in fact contain the data, if not add a case
                   return messageObject.payload.parts[0].parts[1].body.data;
+                  // return messageObject.payload.parts[0].parts[0].body.data
                 }
                 else {
                   debugger
@@ -227,7 +229,7 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
           var isGmailContent = false;
 
           var applyAppropriateLabel = function(conciseMsgLabelId, lengthyMsgLabelId) {
-            for(var i=0; i < messageContentsArr.length && i < 11; i++){
+            for(var i=0; i < messageContentsArr.length; i++){
               isGmailContent = false;
               var labelIdsArr = [];
               var currentMessage = messageContentsArr[i];
