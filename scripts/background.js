@@ -126,51 +126,64 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
       //////////////////////   vvv    REFACTOR TO BE A CLOSURE???    vvv   ///////////////////
       //// REFACTOR NOTES:
         // "nonGmail" really means nonGmailReply
-        // messageContentNode === MessageContentData
 
 
 
-          var findContentNode = function(messageObject) {
-            if (messageObject.payload.hasOwnProperty("parts")){
-              if (messageObject.payload.parts[1]){
-                isGmailContent = true;
-                return messageObject.payload.parts[0].body.data;
-              }
-              else if (messageObject.payload.parts[0]){
-                if (messageObject.payload.parts[0].parts){
-                  debugger
-                  // Debugger placed as the logic for this case is likely not be complete
-                  // Need to check if the node below does in fact contain the data, if not add a case
-                  return messageObject.payload.parts[0].parts[1].body.data;
-                  // return messageObject.payload.parts[0].parts[0].body.data
-                }
-                else {
-                  debugger
-                  // Debugger placed as the logic for this case is likely not be complete
-                  // Need to check if the node below does in fact contain the data, if not add a case
-                  return messageObject.payload.parts[0].body.data;
-                }
-              }
-            }
-            else if (messageObject.payload.body) {
-              return messageObject.payload.body.data
-            }
+
+
+          // var runAppropriateParsingFunction = function(fullMessageObject) {
+          //   if (needsGmailCheck === true){
+          //     gmailEmailLength = gmailContentLength(fullMessageObject);
+          //     return gmailEmailLength;
+          //   }
+          //   else {
+          //     nonGmailEmailLength = nonGmailContentLength(fullMessageObject);
+          //     return nonGmailEmailLength;
+          //   }
+          // }
+
+
+//////// Length determining
+
+
+// Gmail
+//           gmailExtraContentLength = function(messageHTMLContent){
+//             var gmailExtraLength = $(messageHTMLContent).find(".gmail_extra").text().length
+//             if (gmailExtraLength === 0 ){
+//               return 0
+//             }
+//             else {
+//               return gmailExtraLength;
+//             }
+//           }
+
+//           gmailContentLength = function(fullMessageObject){
+//             var messageContent = returnContent(fullMessageObject);
+//             var messageHTMLContent = decodeData(messageContent);
+//             var totalMessageLength = messageHTMLContent.length;
+//             var extraContentLength = gmailExtraContentLength(messageHTMLContent);
+//             var messageLengthMinusExtra = totalMessageLength - extraContentLength;
+//             return messageLengthMinusExtra
+//           }
+
+// // Non-gmail
+//           var nonGmailContentLength = function(fullMessageObject) {
+//             var messageContent = returnContent(fullMessageObject);
+//             var messageHTMLContent = decodeData(messageContent);
+//             var messageContentLength = messageHTMLContent.length;
+//             return messageContentLength
+          // }
+
+//////// tableContentParser
+// *Still must write
+
+          var parseToHTML = function(data) {
+            var parsedData = $.parseHTML(data);
+            return parsedData;
           }
 
-          var returnAppropriateContentFormat = function(messageObject) {
-            var messageContentNode = findContentNode(messageObject);
-            var messageHTMLContent = decodeAndReturnParsedHTML(messageContentNode);
-            var messageTextContent = messageHTMLContent;
-            if (isGmailContent === true){
-              return messageHTMLContent
-            }
-            else {
-              return messageTextContent
-            }
-          }
-
-          var decodeAndReturnParsedHTML = function(messageContentNode) {
-            var encodedContent = messageContentNode;
+          var decodeData = function(encodedMessageContent) {
+            var encodedContent = encodedMessageContent;
             if (encodedContent) {
               var decodedContent = atob(encodedContent.replace(/-/g, '+').replace(/_/g, '/'));
             }
@@ -181,60 +194,98 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
             return decodedContent;
           }
 
-//////// Length determining
-          var determineEmailLength = function(fullMessageObject){
-            if (isGmailContent === true){
-              gmailEmailLength = gmailContentLength(fullMessageObject);
-              return gmailEmailLength;
+          var determineNecessaryExtraContentChecks = function(messageObject){
+            for (var i=0; i < messageObject.payload.headers.length; i++) {
+              if (messageObject.payload.headers[i].name === "Message-Id" && messageObject.payload.headers[i].value.includes("gmail")){
+                  needsGmailCheck = true;
+              }
+            }
+          }
+
+          var returnExtraContent = function(messageObject) {
+            if (needsGmailCheck === true){
+              var encodedMessageData = messageObject.payload.parts[1].body.data;
+              var decodedMessageData = decodeData(encodedMessageData);
+              var htmlData = parseToHTML(decodedMessageData);
+              for (var i=0; i < htmlData.length; i++) {
+                if (htmlData[i].attributes && htmlData[i].classList.contains("gmail_extra")) {
+                  return htmlData[i].innerText
+                }
+                else if (htmlData[i].attributes && htmlData[i].children[0].classList.contains("gmail_extra")) {
+                  return htmlData[i].children[0].innerText
+                }
+                else if (htmlData[i].attributes && htmlData[i].getElementsByClassName("gmail_signature").length === 1) {
+                  return htmlData[i].getElementsByClassName("gmail_signature")[0].innerText
+                }
+                else {
+                  return ""
+                }
+              }
             }
             else {
-              nonGmailEmailLength = nonGmailContentLength(fullMessageObject);
-              return nonGmailEmailLength;
+              return ""
             }
           }
 
-// Gmail
-          gmailExtraContentLength = function(messageHTMLContent){
-            var gmailExtraLength = $(messageHTMLContent).find(".gmail_extra").text().length
-            if (gmailExtraLength === 0 ){
-              return 0
+          var returnContent = function(messageObject) {                                                                                            //////////////// FINISH THIS
+            if (messageObject.payload.parts){
+              if (messageObject.payload.parts[0]){
+                if (messageObject.payload.parts[0].body) {
+                  var encodedMessageData = messageObject.payload.parts[0].body.data
+                  var decodedMessageData = decodeData(encodedMessageData);
+                  return decodedMessageData;
+                }
+                else if (messageObject.payload.parts[0].parts){
+                  debugger
+                  // Debugger placed as the logic for this case is likely not be complete
+                  // Need to check if the node below does in fact contain the data, if not add a case
+                  // This is likely where the table parser will be needed
+                  return messageObject.payload.parts[0].parts[1].body.data;
+                  // return messageObject.payload.parts[0].parts[0].body.data
+                }
+                else {
+                  debugger
+                  // Debugger placed as the logic for this case is likely not be complete
+                  // Need to check if the node below does in fact contain the data, if not add a case
+                  // This is likely where the table parser will be needed
+                  var encodedMessageData = messageObject.payload.parts[0].body.data;
+                  var decodedMessageData = decodeData(encodedMessageData);
+                  return decodedMessageData;
+                }
+              }
+            }
+            else if (messageObject.payload.body) {
+              var encodedMessageData = messageObject.payload.body.data
+              var decodedMessageData = decodeData(encodedMessageData);
+              return decodedMessageData;
             }
             else {
-              return gmailExtraLength
+              debugger
+              // Unknown cases
             }
           }
 
-          gmailContentLength = function(fullMessageObject){
-            var messageHTMLContent = returnAppropriateContentFormat(fullMessageObject);
-            var totalMessageLength = messageHTMLContent.length;
-            var extraContentLength = gmailExtraContentLength(messageHTMLContent);
-            var messageLengthMinusExtra = totalMessageLength - extraContentLength;
-            return messageLengthMinusExtra
+          var findEmailLength = function(messageObject) {
+            determineNecessaryExtraContentChecks(messageObject);
+            var emailExtraContent = returnExtraContent(messageObject);
+            var emailContent = returnContent(messageObject);
+            var emailLength = emailContent.replace(/\s/g, '').length - emailExtraContent.replace(/\s/g, '').length;
+            return emailLength
           }
-
-// Non-gmail
-          var nonGmailContentLength = function(messageObject) {
-            var messageContent = returnAppropriateContentFormat(messageObject);
-            var messageContentLength = messageContent.length;
-            return messageContentLength
-          }
-
-//////// tableContentParser
-// *Still must write
-
 
 //////// Apply label                                                  **currentMessage needs to be passed as arg
           var extraContent = 0;  // This may not be necessary
           var tempCharLimit = 640;
-          var isGmailContent = false;
+          var needsGmailCheck = false;
 
           var applyAppropriateLabel = function(conciseMsgLabelId, lengthyMsgLabelId) {
             for(var i=0; i < messageContentsArr.length; i++){
-              isGmailContent = false;
+              needsGmailCheck = false;
               var labelIdsArr = [];
               var currentMessage = messageContentsArr[i];
               var messageID = currentMessage.id;
-              var emailLength = determineEmailLength(currentMessage);
+              determineNecessaryExtraContentChecks(currentMessage);
+              var emailLength = findEmailLength(currentMessage);
               var labelModifyURL = "https://www.googleapis.com/gmail/v1/users/me/messages/" + messageID + "/modify?access_token=" + chromeIdentityToken;
 
               if (emailLength > tempCharLimit){
@@ -256,10 +307,10 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
 
 
 
-          chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-            chrome.tabs.sendMessage(tabs[0].id, {data: "Hi"}, function(response) {
-            });
-          });
+          // chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+          //   chrome.tabs.sendMessage(tabs[0].id, {data: "Hi"}, function(response) {
+          //   });
+          // });
         }
       );
     });
