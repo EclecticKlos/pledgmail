@@ -175,7 +175,7 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
           // }
 
 //////// tableContentParser
-// *Still must write
+// *Still must write table parser
 
           var parseToHTML = function(data) {
             var parsedData = $.parseHTML(data);
@@ -199,11 +199,16 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
               if (messageObject.payload.headers[i].name === "Message-Id" && messageObject.payload.headers[i].value.includes("gmail")){
                   needsGmailCheck = true;
               }
+              if (needsGmailCheck === true){
+                if (messageObject.payload.headers[i].name === "X-Mailer" && messageObject.payload.headers[i].value.includes("iPhone")) {
+                  needsiPhoneCheck = true;
+                }
+              }
             }
           }
 
           var returnExtraContent = function(messageObject) {
-            if (needsGmailCheck === true){
+            if (needsGmailCheck === true && needsiPhoneCheck === false){
               var encodedMessageData = messageObject.payload.parts[1].body.data;
               var decodedMessageData = decodeData(encodedMessageData);
               var htmlData = parseToHTML(decodedMessageData);
@@ -222,26 +227,35 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
                 }
               }
             }
+            else if (needsiPhoneCheck === true){
+              var encodedMessageData = messageObject.payload.body.data;
+              var decodedMessageData = decodeData(encodedMessageData);
+              var htmlData = parseToHTML(decodedMessageData);
+              if (htmlData[1]) {
+                return htmlData[1].innerText
+              }
+              else {
+                return ""
+              }
+            }
             else {
               return ""
             }
           }
 
-          var returnContent = function(messageObject) {                                                                                            //////////////// FINISH THIS
+          var returnContent = function(messageObject) {                                                        //////////////// FINISH THIS
             if (messageObject.payload.parts){
               if (messageObject.payload.parts[0]){
-                if (messageObject.payload.parts[0].body) {
-                  var encodedMessageData = messageObject.payload.parts[0].body.data
-                  var decodedMessageData = decodeData(encodedMessageData);
-                  return decodedMessageData;
-                }
-                else if (messageObject.payload.parts[0].parts){
-                  debugger
+                if (messageObject.payload.parts[0].parts){
                   // Debugger placed as the logic for this case is likely not be complete
                   // Need to check if the node below does in fact contain the data, if not add a case
                   // This is likely where the table parser will be needed
-                  return messageObject.payload.parts[0].parts[1].body.data;
-                  // return messageObject.payload.parts[0].parts[0].body.data
+                  return messageObject.payload.parts[0].parts[0].body.data
+                }
+                else if (messageObject.payload.parts[0].body) {
+                  var encodedMessageData = messageObject.payload.parts[0].body.data
+                  var decodedMessageData = decodeData(encodedMessageData);
+                  return decodedMessageData;
                 }
                 else {
                   debugger
@@ -252,6 +266,16 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
                   var decodedMessageData = decodeData(encodedMessageData);
                   return decodedMessageData;
                 }
+              }
+            }
+            else if (needsiPhoneCheck === true) {                                                        ///////////////////// iPhone parse is not correct
+              var encodedMessageData = messageObject.payload.body.data;
+              var decodedMessageData = decodeData(encodedMessageData);
+              if (decodedMessageData) {
+                return decodedMessageData
+              }
+              else {
+                return ""
               }
             }
             else if (messageObject.payload.body) {
@@ -277,10 +301,12 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
           var extraContent = 0;  // This may not be necessary
           var tempCharLimit = 640;
           var needsGmailCheck = false;
+          var needsiPhoneCheck = false;
 
           var applyAppropriateLabel = function(conciseMsgLabelId, lengthyMsgLabelId) {
             for(var i=0; i < messageContentsArr.length; i++){
               needsGmailCheck = false;
+              needsiPhoneCheck = false;
               var labelIdsArr = [];
               var currentMessage = messageContentsArr[i];
               var messageID = currentMessage.id;
