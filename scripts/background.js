@@ -17,22 +17,20 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
                 return xmlHttp.responseText;
             }
 
+          // getIdsOfMessages assumes Google returns messageIds in chronological order from newest to oldest -- done to save time
           var allMessagesReceived = gapiGETRequest(gapiRequestInboxMessagesAndToken)
           var allMessagesObject = JSON.parse(allMessagesReceived)
-          var messageIdsOfMessagesWithContent = [];
-          var previousMessageThreadID = 0;
-          var getIdsOfMessagesWithContents = function(responseObject){
-            console.log(responseObject)
+          var messageIds = [];
+          var threadAndMessageIdsAlreadyUsed = {} // ThreadId = key, MessageId = value
+          var getIdsOfMessages = function(responseObject){
             for(var i=0; i < responseObject.messages.length; i ++) {
-              debugger;
-              if (previousMessageThreadID !== responseObject.messages[i].threadId){
-                // 14eb4eda3ba67a5e
-                messageIdsOfMessagesWithContent.push(responseObject.messages[i].id);
+              if (!threadAndMessageIdsAlreadyUsed.hasOwnProperty(responseObject.messages[i].threadId)){
+                threadAndMessageIdsAlreadyUsed[responseObject.messages[i].threadId] = responseObject.messages[i].id
+                messageIds.push(responseObject.messages[i].id)
               }
-              previousMessageThreadID = responseObject.messages[i].threadId
             }
           }
-                                                                                                    //DELETE THIS NOTE:  responseObject.messages[t].threadId)
+
           var messageContentsArr = [];
           var gapiRequestMessageWithId = "";
           var getMessageContents = function(messageIdList)
@@ -48,8 +46,8 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
             }
           }
 
-          getIdsOfMessagesWithContents(allMessagesObject);
-          getMessageContents(messageIdsOfMessagesWithContent);
+          getIdsOfMessages(allMessagesObject);
+          getMessageContents(messageIds);
 
           var createLabel = function (gapiRequestURL, labelName)
           {
@@ -202,16 +200,16 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
 
           var determineNecessaryExtraContentChecks = function(messageObject){
             for (var i=0; i < messageObject.payload.headers.length; i++) {
-              if (messageObject.payload.headers[i].name === "Message-Id" && messageObject.payload.headers[i].value.includes("gmail")){
-                  needsGmailCheck = true;
+              if ((messageObject.payload.headers[i].name === "Message-Id" || messageObject.payload.headers[i].name === "Message-ID") && messageObject.payload.headers[i].value.includes("gmail")){
+                  return needsGmailCheck = true;
               }
               if (needsGmailCheck === true){                                                                                            /////// May need/want to rewrite this logic
                 if (messageObject.payload.headers[i].name === "X-Mailer" && messageObject.payload.headers[i].value.includes("iPhone")) {
-                  needsiPhoneCheck = true;
+                  return needsiPhoneCheck = true;
                 }
               }
               if (messageObject.payload.headers[i].name === "X-Mailer" && messageObject.payload.headers[i].value.includes("YahooMailAndroidMobile")) {    // This was specifically tested with YahooMailAndroidMobile/4.9.2
-                needsYMailCheck = true;
+                return needsYMailCheck = true;
               }
             }
           }
@@ -222,16 +220,18 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
               var decodedMessageData = decodeData(encodedMessageData);
               var htmlData = parseToHTML(decodedMessageData);
               for (var i=0; i < htmlData.length; i++) {
-                if (htmlData[i].attributes && htmlData[i].classList.contains("gmail_extra")) {
+                if (htmlData[i].attributes && htmlData[i].classList.contains("gmail_extra") || htmlData[i].attributes && htmlData[i].classList.contains("gmail_quote")) {
                   return htmlData[i].innerText
                 }
-                else if (htmlData[i].attributes && htmlData[i].children[0].classList.contains("gmail_extra")) {
-                  return htmlData[i].children[0].innerText
+                else if (htmlData[i].children) {
+                  if (htmlData[i].children.length > 0 && htmlData[i].children[0].classList.contains("gmail_extra")) {
+                    return htmlData[i].children[0].innerText
+                  }
                 }
                 else if (htmlData[i].attributes && htmlData[i].getElementsByClassName("gmail_signature").length === 1) {
                   return htmlData[i].getElementsByClassName("gmail_signature")[0].innerText
                 }
-                else {
+                else if (i === (htmlData.length -1)) {
                   return ""
                 }
               }
