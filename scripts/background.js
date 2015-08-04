@@ -20,13 +20,19 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
           var allMessagesReceived = gapiGETRequest(gapiRequestInboxMessagesAndToken)
           var allMessagesObject = JSON.parse(allMessagesReceived)
           var messageIdsOfMessagesWithContent = [];
+          var previousMessageThreadID = 0;
           var getIdsOfMessagesWithContents = function(responseObject){
             console.log(responseObject)
             for(var i=0; i < responseObject.messages.length; i ++) {
-              messageIdsOfMessagesWithContent.push(responseObject.messages[i].id);
+              debugger;
+              if (previousMessageThreadID !== responseObject.messages[i].threadId){
+                // 14eb4eda3ba67a5e
+                messageIdsOfMessagesWithContent.push(responseObject.messages[i].id);
+              }
+              previousMessageThreadID = responseObject.messages[i].threadId
             }
           }
-
+                                                                                                    //DELETE THIS NOTE:  responseObject.messages[t].threadId)
           var messageContentsArr = [];
           var gapiRequestMessageWithId = "";
           var getMessageContents = function(messageIdList)
@@ -199,10 +205,13 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
               if (messageObject.payload.headers[i].name === "Message-Id" && messageObject.payload.headers[i].value.includes("gmail")){
                   needsGmailCheck = true;
               }
-              if (needsGmailCheck === true){
+              if (needsGmailCheck === true){                                                                                            /////// May need/want to rewrite this logic
                 if (messageObject.payload.headers[i].name === "X-Mailer" && messageObject.payload.headers[i].value.includes("iPhone")) {
                   needsiPhoneCheck = true;
                 }
+              }
+              if (messageObject.payload.headers[i].name === "X-Mailer" && messageObject.payload.headers[i].value.includes("YahooMailAndroidMobile")) {    // This was specifically tested with YahooMailAndroidMobile/4.9.2
+                needsYMailCheck = true;
               }
             }
           }
@@ -238,7 +247,22 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
                 return ""
               }
             }
+            else if (needsYMailCheck === true){
+              var encodedMessageData = messageObject.payload.parts[1].body.data
+              var decodedMessageData = decodeData(encodedMessageData);
+              var htmlData = parseToHTML(decodedMessageData);
+              if (htmlData[0].getElementsByTagName("tbody")[1] && htmlData[0].getElementsByTagName("tbody")[1].innerText.length > 0) {
+                return htmlData[0].getElementsByTagName("tbody")[1].innerText
+              }
+              else if (htmlData[0].getElementsByTagName("tbody")[1] && htmlData[0].getElementsByTagName("tbody")[1].innerText.length === 0) {
+                return ""
+              }
+              else {
+                debugger  // Unknown YMail case
+              }
+            }
             else {
+              debugger  // Unknown case
               return ""
             }
           }
@@ -293,7 +317,7 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
             determineNecessaryExtraContentChecks(messageObject);
             var emailExtraContent = returnExtraContent(messageObject);
             var emailContent = returnContent(messageObject);
-            var emailLength = emailContent.replace(/\s/g, '').length - emailExtraContent.replace(/\s/g, '').length;
+            var emailLength = emailContent.replace(/\s/g, '').replace(/Â/g, '').length - emailExtraContent.replace(/\s/g, '').replace(/Â/g, '').length;
             return emailLength
           }
 
@@ -302,11 +326,13 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
           var tempCharLimit = 640;
           var needsGmailCheck = false;
           var needsiPhoneCheck = false;
+          var needsYMailCheck = false;
 
           var applyAppropriateLabel = function(conciseMsgLabelId, lengthyMsgLabelId) {
             for(var i=0; i < messageContentsArr.length; i++){
               needsGmailCheck = false;
               needsiPhoneCheck = false;
+              needsYMailCheck = false;
               var labelIdsArr = [];
               var currentMessage = messageContentsArr[i];
               var messageID = currentMessage.id;
