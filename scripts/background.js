@@ -200,25 +200,30 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
 
           var determineNecessaryExtraContentChecks = function(messageObject){
             for (var i=0; i < messageObject.payload.headers.length; i++) {
-              if ((messageObject.payload.headers[i].name === "Message-Id" || messageObject.payload.headers[i].name === "Message-ID") && messageObject.payload.headers[i].value.includes("gmail")){
-                  return needsGmailCheck = true;
+              if (messageObject.payload.headers[i].name === "X-Mailer" && messageObject.payload.headers[i].value.includes("iPhone")) {
+                return needsiPhoneCheck = true;
               }
-              if (needsGmailCheck === true){                                                                                            /////// May need/want to rewrite this logic
-                if (messageObject.payload.headers[i].name === "X-Mailer" && messageObject.payload.headers[i].value.includes("iPhone")) {
-                  return needsiPhoneCheck = true;
-                }
+              else if ((messageObject.payload.headers[i].name === "Message-Id" || messageObject.payload.headers[i].name === "Message-ID") && messageObject.payload.headers[i].value.includes("gmail")){
+                needsGmailCheck = true;
               }
-              if (messageObject.payload.headers[i].name === "X-Mailer" && messageObject.payload.headers[i].value.includes("YahooMailAndroidMobile")) {    // This was specifically tested with YahooMailAndroidMobile/4.9.2
-                return needsYMailCheck = true;
+              else if (messageObject.payload.headers[i].name === "X-Mailer" && messageObject.payload.headers[i].value.includes("YahooMailAndroidMobile")) {    // This was specifically tested with YahooMailAndroidMobile/4.9.2
+                needsYMailCheck = true;
               }
             }
           }
 
           var returnExtraContent = function(messageObject) {
             if (needsGmailCheck === true && needsiPhoneCheck === false){
-              var encodedMessageData = messageObject.payload.parts[1].body.data;
-              var decodedMessageData = decodeData(encodedMessageData);
-              var htmlData = parseToHTML(decodedMessageData);
+              if (messageObject.payload.parts[1].body.attachmentId) {
+                var encodedMessageData = messageObject.payload.parts[0].parts[1].body.data;
+                var decodedMessageData = decodeData(encodedMessageData);
+                var htmlData = parseToHTML(decodedMessageData);
+              }
+              else {
+                var encodedMessageData = messageObject.payload.parts[1].body.data;
+                var decodedMessageData = decodeData(encodedMessageData);
+                var htmlData = parseToHTML(decodedMessageData);
+              }
               for (var i=0; i < htmlData.length; i++) {
                 if (htmlData[i].attributes && htmlData[i].classList.contains("gmail_extra") || htmlData[i].attributes && htmlData[i].classList.contains("gmail_quote")) {
                   return htmlData[i].innerText
@@ -237,33 +242,45 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
               }
             }
             else if (needsiPhoneCheck === true){
-              var encodedMessageData = messageObject.payload.body.data;
-              var decodedMessageData = decodeData(encodedMessageData);
-              var htmlData = parseToHTML(decodedMessageData);
-              if (htmlData[1]) {
+              if (messageObject.payload.body.data) {
+                var encodedMessageData = messageObject.payload.body.data;
+                var decodedMessageData = decodeData(encodedMessageData);
+                var htmlData = parseToHTML(decodedMessageData);
                 return htmlData[1].innerText
               }
+              else if (messageObject.payload.parts && messageObject.payload.parts && messageObject.payload.parts[0].body){
+                var encodedMessageData = messageObject.payload.parts[0].body.data;
+                var decodedMessageData = decodeData(encodedMessageData);
+                var extraContentStartingIndex = 0;
+                for (var i=0; i < decodedMessageData.length; i++) {
+                  if (decodedMessageData[i] === ">" && decodedMessageData[i+1] === " " && decodedMessageData[i+2] === "O" && decodedMessageData[i+3] === "n" && decodedMessageData[i+4] === " ") {
+                    extraContentStartingIndex = i;
+                    return decodedMessageData.substr(extraContentStartingIndex, decodedMessageData.length);
+                  }
+                }
+              }
               else {
-                return ""
+                debugger; //Likely unknown case
+                return "";
               }
             }
             else if (needsYMailCheck === true){
-              var encodedMessageData = messageObject.payload.parts[1].body.data
+              var encodedMessageData = messageObject.payload.parts[1].body.data;
               var decodedMessageData = decodeData(encodedMessageData);
               var htmlData = parseToHTML(decodedMessageData);
               if (htmlData[0].getElementsByTagName("tbody")[1] && htmlData[0].getElementsByTagName("tbody")[1].innerText.length > 0) {
-                return htmlData[0].getElementsByTagName("tbody")[1].innerText
+                return htmlData[0].getElementsByTagName("tbody")[1].innerText;
               }
               else if (htmlData[0].getElementsByTagName("tbody")[1] && htmlData[0].getElementsByTagName("tbody")[1].innerText.length === 0) {
-                return ""
+                return "";
               }
               else {
-                debugger  // Unknown YMail case
+                debugger;  // Unknown YMail case
               }
             }
             else {
-              debugger  // Unknown case
-              return ""
+              // debugger  // Unknown case
+              return "";
             }
           }
 
@@ -293,24 +310,38 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
               }
             }
             else if (needsiPhoneCheck === true) {                                                        ///////////////////// iPhone parse is not correct
-              var encodedMessageData = messageObject.payload.body.data;
-              var decodedMessageData = decodeData(encodedMessageData);
-              if (decodedMessageData) {
+              if (messageObject.payload.parts && messageObject.payload.parts && messageObject.payload.parts[0].body) {
+                var encodedMessageData = messageObject.payload.parts[0].body.data
+                var decodedMessageData = decodeData(encodedMessageData);
+              }
+              else if (messageObject.payload.body && messageObject.payload.body.data) {
+                var encodedMessageData = messageObject.payload.body.data;
+                var decodedMessageData = decodeData(encodedMessageData);
                 return decodedMessageData
               }
               else {
+                debugger // unknown circumstance, likely has content
                 return ""
               }
             }
             else if (messageObject.payload.body) {
               var encodedMessageData = messageObject.payload.body.data
               var decodedMessageData = decodeData(encodedMessageData);
-              return decodedMessageData;
+              if (decodedMessageData[i] === "<" && decodedMessageData[i+1] === "!" && decodedMessageData[i+2] === "D") {    // If message content = html format (Look into headers)
+                var html = parseToHTML(decodedMessageData)
+                for (var i=0; i < html.length; i++) {
+                  if ($(html[i]).is("table")) {
+                    return html[i].innerText;
+                  }
+                }
+              }
+              else {
+                return decodedMessageData;
+              }
             }
-            else {
-              debugger
-              // Unknown cases
-            }
+            // else {
+            //   // Unknown cases
+            // }
           }
 
           var findEmailLength = function(messageObject) {
