@@ -214,15 +214,18 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
 
           var returnExtraContent = function(messageObject) {
             if (needsGmailCheck === true && needsiPhoneCheck === false){
-              if (messageObject.payload.parts[1].body.attachmentId) {
+              if (messageObject.payload.parts && messageObject.payload.parts[1].body.attachmentId) {
                 var encodedMessageData = messageObject.payload.parts[0].parts[1].body.data;
                 var decodedMessageData = decodeData(encodedMessageData);
                 var htmlData = parseToHTML(decodedMessageData);
               }
-              else {
+              else if (messageObject.payload.parts && messageObject.payload.parts[1].body.data) {
                 var encodedMessageData = messageObject.payload.parts[1].body.data;
                 var decodedMessageData = decodeData(encodedMessageData);
                 var htmlData = parseToHTML(decodedMessageData);
+              }
+              else {
+                return ""
               }
               for (var i=0; i < htmlData.length; i++) {
                 if (htmlData[i].attributes && htmlData[i].classList.contains("gmail_extra") || htmlData[i].attributes && htmlData[i].classList.contains("gmail_quote")) {
