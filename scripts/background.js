@@ -23,7 +23,8 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
           var messageIds = [];
           var threadAndMessageIdsAlreadyUsed = {} // ThreadId = key, MessageId = value
           var getIdsOfMessages = function(responseObject){
-            for(var i=0; i < responseObject.messages.length; i ++) {
+            // for(var i=0; i < responseObject.messages.length; i ++) {
+            for(var i=0; i < 65; i ++) {
               if (!threadAndMessageIdsAlreadyUsed.hasOwnProperty(responseObject.messages[i].threadId)){
                 threadAndMessageIdsAlreadyUsed[responseObject.messages[i].threadId] = responseObject.messages[i].id
                 messageIds.push(responseObject.messages[i].id)
@@ -206,14 +207,22 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
               else if ((messageObject.payload.headers[i].name === "Message-Id" || messageObject.payload.headers[i].name === "Message-ID") && messageObject.payload.headers[i].value.includes("gmail")){
                 needsGmailCheck = true;
               }
-              else if (messageObject.payload.headers[i].name === "X-Mailer" && messageObject.payload.headers[i].value.includes("YahooMailAndroidMobile")) {    // This was specifically tested with YahooMailAndroidMobile/4.9.2
+              else if (messageObject.payload.headers[i].name === "X-Mailer" && messageObject.payload.headers[i].value.includes("YahooMailAndroidMobile")) {
+                // This was specifically tested with YahooMailAndroidMobile/4.9.2
                 needsYMailCheck = true;
+              }
+              else if (messageObject.payload.headers[i].name === "X-Mailer" && messageObject.payload.headers[i].value.includes("Apple Mail")) {
+                // Tested with Apple Mail 2.2098
+                needsAppleMailCheck = true;
+              }
+              else if ((messageObject.payload.headers[i].name === "Message-Id" || messageObject.payload.headers[i].name === "Message-ID") && messageObject.payload.headers[i].value.includes("sendgrid")) {
+                needsSendGridCheck = true;
               }
             }
           }
 
           var returnExtraContent = function(messageObject) {
-            if (needsGmailCheck === true && needsiPhoneCheck === false){
+            if (needsGmailCheck === true && needsiPhoneCheck === false && needsAppleMailCheck === false){
               if (messageObject.payload.parts && messageObject.payload.parts[1].body.attachmentId) {
                 var encodedMessageData = messageObject.payload.parts[0].parts[1].body.data;
                 var decodedMessageData = decodeData(encodedMessageData);
@@ -241,6 +250,24 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
                 }
                 else if (i === (htmlData.length -1)) {
                   return ""
+                }
+              }
+            }
+            else if (needsGmailCheck === true && needsiPhoneCheck === true) {
+              if (messageObject.payload.body.data) {
+                var encodedMessageData = messageObject.payload.body.data;
+                var decodedMessageData = decodeData(encodedMessageData);
+                return decodedMessageData;
+              }
+              else if (messageObject.payload.parts) {
+                var encodedMessageData = messageObject.payload.parts[0].body.data;
+                var decodedMessageData = decodeData(encodedMessageData);
+                var extraContentStartingIndex = 0;
+                for (var i=0; i < decodedMessageData.length; i++) {
+                  if (decodedMessageData[i] === ">" && decodedMessageData[i+1] === " " && decodedMessageData[i+2] === "O" && decodedMessageData[i+3] === "n" && decodedMessageData[i+4] === " ") {
+                    extraContentStartingIndex = i;
+                    return decodedMessageData.substr(extraContentStartingIndex, decodedMessageData.length);
+                  }
                 }
               }
             }
@@ -279,6 +306,31 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
               }
               else {
                 debugger;  // Unknown YMail case
+              }
+            }
+            else if (needsAppleMailCheck === true) {
+              if (messageObject.payload.parts && messageObject.payload.parts[1] && messageObject.payload.parts[1].body) {
+                var encodedMessageData = messageObject.payload.parts[1].body.data;
+                var decodedMessageData = decodeData(encodedMessageData);
+                var htmlObject = parseToHTML(decodedMessageData);
+                var htmlData = htmlObject[1].textContent
+                return htmlData
+              }
+              else if (messageObject.payload.body.data) {
+                var encodedMessageData = messageObject.payload.body.data;
+                var decodedMessageData = decodeData(encodedMessageData);
+                return decodedMessageData
+              }
+            }
+            else if (needsSendGridCheck === true) {
+              var encodedMessageData = messageObject.payload.body.data;
+              var decodedMessageData = decodeData(encodedMessageData);
+              var htmlObject = parseToHTML(decodedMessageData);
+              var html = parseToHTML(decodedMessageData)
+              for (var i=0; i < html.length; i++) {
+                if ($(html[i]).is("table")) {
+                  return html[i].innerText;
+                }
               }
             }
             else {
@@ -351,7 +403,7 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
             determineNecessaryExtraContentChecks(messageObject);
             var emailExtraContent = returnExtraContent(messageObject);
             var emailContent = returnContent(messageObject);
-            var emailLength = emailContent.replace(/\s/g, '').replace(/Â/g, '').length - emailExtraContent.replace(/\s/g, '').replace(/Â/g, '').length;
+            var emailLength = emailContent.replace(/\s/g, '').replace(/Â/g, '').replace(/â/g,'\'').length - emailExtraContent.replace(/\s/g, '').replace(/Â/g, '').replace(/â/g,'\'').length;
             return emailLength
           }
 
@@ -361,12 +413,16 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
           var needsGmailCheck = false;
           var needsiPhoneCheck = false;
           var needsYMailCheck = false;
+          var needsAppleMailCheck = false;
+          var needsSendGridCheck = false;
 
           var applyAppropriateLabel = function(conciseMsgLabelId, lengthyMsgLabelId) {
             for(var i=0; i < messageContentsArr.length; i++){
               needsGmailCheck = false;
               needsiPhoneCheck = false;
               needsYMailCheck = false;
+              needsAppleMailCheck = false;
+              needsSendGridCheck = false;
               var labelIdsArr = [];
               var currentMessage = messageContentsArr[i];
               var messageID = currentMessage.id;
