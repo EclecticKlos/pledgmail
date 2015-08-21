@@ -309,17 +309,20 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
               }
             }
             else if (needsAppleMailCheck === true) {
-              if (messageObject.payload.parts && messageObject.payload.parts[1] && messageObject.payload.parts[1].body) {
-                var encodedMessageData = messageObject.payload.parts[1].body.data;
+              if (messageObject.payload.parts && messageObject.payload.parts[0] && messageObject.payload.parts[0].body) {
+                var encodedMessageData = messageObject.payload.parts[0].body.data;
                 var decodedMessageData = decodeData(encodedMessageData);
-                var htmlObject = parseToHTML(decodedMessageData);
-                var htmlData = htmlObject[1].textContent
-                return htmlData
+                var extraContentStartingIndex = 0;
+                for (var i=0; i < decodedMessageData.length; i++) {
+                  if (decodedMessageData[i] === ">" && decodedMessageData[i+1] === " " && decodedMessageData[i+2] === "O" && decodedMessageData[i+3] === "n" && decodedMessageData[i+4] === " ") {
+                    extraContentStartingIndex = i;
+                    return decodedMessageData.substr(extraContentStartingIndex, decodedMessageData.length);
+                  }
+                }
+                return
               }
-              else if (messageObject.payload.body.data) {
-                var encodedMessageData = messageObject.payload.body.data;
-                var decodedMessageData = decodeData(encodedMessageData);
-                return decodedMessageData
+              else {
+                return "";
               }
             }
             else if (needsSendGridCheck === true) {
