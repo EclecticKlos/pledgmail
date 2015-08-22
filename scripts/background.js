@@ -24,7 +24,7 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
           var threadAndMessageIdsAlreadyUsed = {} // ThreadId = key, MessageId = value
           var getIdsOfMessages = function(responseObject){
             // for(var i=0; i < responseObject.messages.length; i ++) {
-            for(var i=0; i < 65; i ++) {
+            for(var i=0; i < 54; i ++) {
               if (!threadAndMessageIdsAlreadyUsed.hasOwnProperty(responseObject.messages[i].threadId)){
                 threadAndMessageIdsAlreadyUsed[responseObject.messages[i].threadId] = responseObject.messages[i].id
                 messageIds.push(responseObject.messages[i].id)
@@ -446,6 +446,44 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
 
 
           applyAppropriateLabel(conciseMessageLabelId, lengthyMessageLabelId)
+
+
+
+
+          var sender = "Dan Klos <dsklos@gmail.com>";
+          var recipient = "Dan Klos <dan@pledgmail.com>";
+          var subjectLine = "This is a test email from Pledgmail";
+          var dateSent = ""
+          var messageId = "<somebullshit@this.yay>"
+          var message = "This is a test message!"
+
+          var buildEmail = function(sender, recipient, subjectLine, dateSent, messageId, message) {
+            var emailString = [
+              sender,
+              recipient,
+              subjectLine,
+              "Date: Fri, 21 Aug 2015 18:51:06 -0600",
+              messageId,
+              message
+            ];
+            return emailString.join("\n");
+          }
+
+          var thisEmail = buildEmail(sender, recipient, subjectLine, dateSent, messageId, message)
+
+
+          var generateTestEmail = function(userId, email, callback) {
+            var base64EncodedEmail = btoa(email);
+            var request = gapi.client.gmail.users.messages.send({
+              'userId': userId,
+              'message': {
+                'raw': base64EncodedEmail
+              }
+            })
+            request.execute(callback);
+          }
+
+
 
 
 
