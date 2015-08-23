@@ -452,32 +452,32 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
 
           var sender = "Dan Klos <dsklos@gmail.com>";
           var recipient = "Dan Klos <dan@pledgmail.com>";
-          var subjectLine = "This is a test email from Pledgmail";
+          var subjectLine = "This is a test email from Yours Truly";
           var dateSent = ""
           var messageId = "<somebullshit@this.yay>"
-          var message = "This is a test message!"
+          var message = "A new message"
 
           var buildEmail = function(sender, recipient, subjectLine, dateSent, messageId, message) {
             var emailString = [
-              sender,
-              recipient,
-              subjectLine,
-              "Date: Fri, 21 Aug 2015 18:51:06 -0600",
-              messageId,
+              "From: " + sender,
+              "To: " + recipient,
+              "Subject: " + subjectLine,
+              "Date: Sat, 22 Aug 2015 17:06:06 -0600",
+              "Message-ID: " + messageId,
               message
             ];
             return emailString.join("\n");
           }
 
           var thisEmail = buildEmail(sender, recipient, subjectLine, dateSent, messageId, message)
+          var base64CodedEmail = btoa(thisEmail).replace(/\+/g, '-').replace(/\//g, '_')
 
 
           var generateTestEmail = function(userId, email, callback) {
-            var base64EncodedEmail = btoa(email);
             var request = gapi.client.gmail.users.messages.send({
               'userId': userId,
               'message': {
-                'raw': base64EncodedEmail
+                'raw': base64CodedEmail
               }
             })
             request.execute(callback);
