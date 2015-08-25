@@ -23,8 +23,8 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
           var messageIds = [];
           var threadAndMessageIdsAlreadyUsed = {} // ThreadId = key, MessageId = value
           var getIdsOfMessages = function(responseObject){
-            // for(var i=0; i < responseObject.messages.length; i ++) {
-            for(var i=0; i < 54; i ++) {
+            for(var i=0; i < responseObject.messages.length; i ++) {
+            // for(var i=0; i < 54; i ++) {
               if (!threadAndMessageIdsAlreadyUsed.hasOwnProperty(responseObject.messages[i].threadId)){
                 threadAndMessageIdsAlreadyUsed[responseObject.messages[i].threadId] = responseObject.messages[i].id
                 messageIds.push(responseObject.messages[i].id)
@@ -450,12 +450,12 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
 
 
 
-          var sender = "Dan Klos <dsklos@gmail.com>";
-          var recipient = "Dan Klos <dan@pledgmail.com>";
+          var recipient = "Dan Klos <dsklos@gmail.com>";
+          var sender = "Dan Klos <dan@pledgmail.com>";
           var subjectLine = "This is a test email from Yours Truly";
           var dateSent = ""
           var messageId = "<somebullshit@this.yay>"
-          var message = "A new message"
+          var message = "This should look like a reply yet again, baby"
 
           var buildEmail = function(sender, recipient, subjectLine, dateSent, messageId, message) {
             var emailString = [
@@ -472,16 +472,55 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
           var thisEmail = buildEmail(sender, recipient, subjectLine, dateSent, messageId, message)
           var base64CodedEmail = btoa(thisEmail).replace(/\+/g, '-').replace(/\//g, '_')
 
+//          var gapiRequestInboxThreadsAndToken = "https://www.googleapis.com/gmail/v1/users/me/threads?q=-from%3Ame+in%3Ainbox&access_token=" + chromeIdentityToken
 
           var generateTestEmail = function(userId, email, callback) {
-            var request = gapi.client.gmail.users.messages.send({
-              'userId': userId,
-              'message': {
-                'raw': base64CodedEmail
+            var messageSendURL = "https://www.googleapis.com/gmail/v1/users/me/messages/send"
+
+            $.ajax({
+              url: messageSendURL,
+              method: "POST",
+              contentType: "application/json",
+              beforeSend: function(xhr, settings) {
+                xhr.setRequestHeader('Authorization', 'Bearer ' + chromeIdentityToken);
+              },
+              data: JSON.stringify({
+                "raw": email
+              }),
+              success: function(msg){
+              },
+              error: function(msg){
+                alert("Error: " + JSON.stringify(msg));
               }
             })
-            request.execute(callback);
           }
+
+          generateTestEmail('me', base64CodedEmail)
+
+
+
+
+
+// var createLabel = function (gapiRequestURL, labelName)
+//           {
+
+//             $.ajax({
+//               url: gapiRequestURL,
+//               method: "POST",
+//               contentType: "application/json",
+//               data: JSON.stringify({
+//                 name: labelName,
+//                 labelListVisibility: "labelShow",
+//                 messageListVisibility: "show"
+//               }),
+//               success: function(msg){
+//                 // alert(JSON.stringify(msg));
+//               },
+//               error: function(msg){
+//                 alert("Error:" + JSON.stringify(msg));
+//               }
+//             })
+//           }
 
 
 
